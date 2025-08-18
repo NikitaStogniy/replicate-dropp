@@ -7,6 +7,8 @@ export interface ModelConfig {
   category: 'text-to-image' | 'character' | 'style-transfer';
   supportsCharacterImage?: boolean;
   requiresCharacterImage?: boolean;
+  supportsImageToImage?: boolean;
+  supportsInpainting?: boolean;
   supportedAspectRatios: string[];
   supportedStyles?: string[];
   estimatedTime: string;
@@ -19,9 +21,10 @@ export const MODELS: ModelConfig[] = [
     name: 'Ideogram v3 Turbo',
     owner: 'ideogram-ai',
     model: 'ideogram-v3-turbo',
-    description: 'Быстрая генерация с отличным качеством текста и опциональным референсом',
+    description: 'Быстрая генерация с отличным качеством текста, поддержкой inpainting и опциональным референсом',
     category: 'text-to-image',
     supportsCharacterImage: true,
+    supportsInpainting: true,
     supportedAspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4'],
     supportedStyles: ['Auto', 'General', 'Realistic', 'Design'],
     estimatedTime: '10-25 сек',
@@ -32,9 +35,10 @@ export const MODELS: ModelConfig[] = [
     name: 'Ideogram v3 Balanced',
     owner: 'ideogram-ai',
     model: 'ideogram-v3-balanced',
-    description: 'Оптимальный баланс скорости, качества и стоимости с опциональным референсом',
+    description: 'Оптимальный баланс скорости, качества и стоимости с поддержкой inpainting и опциональным референсом',
     category: 'text-to-image',
     supportsCharacterImage: true,
+    supportsInpainting: true,
     supportedAspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4'],
     supportedStyles: ['Auto', 'General', 'Realistic', 'Design'],
     estimatedTime: '20-40 сек',
@@ -45,9 +49,10 @@ export const MODELS: ModelConfig[] = [
     name: 'Ideogram v3 Quality',
     owner: 'ideogram-ai',
     model: 'ideogram-v3-quality',
-    description: 'Максимальное качество Ideogram v3 с потрясающим реализмом и опциональным референсом',
+    description: 'Максимальное качество Ideogram v3 с потрясающим реализмом, поддержкой inpainting и опциональным референсом',
     category: 'text-to-image',
     supportsCharacterImage: true,
+    supportsInpainting: true,
     supportedAspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4'],
     supportedStyles: ['Auto', 'General', 'Realistic', 'Design'],
     estimatedTime: '40-60 сек',
@@ -58,13 +63,27 @@ export const MODELS: ModelConfig[] = [
     name: 'Ideogram Character',
     owner: 'ideogram-ai',
     model: 'ideogram-character',
-    description: 'Специализированная модель для создания консистентных персонажей с референсным изображением',
+    description: 'Специализированная модель для создания консистентных персонажей с поддержкой inpainting и референсным изображением',
     category: 'text-to-image',
     supportsCharacterImage: true,
     requiresCharacterImage: true,
+    supportsInpainting: true,
     supportedAspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4'],
     supportedStyles: ['Auto', 'Fiction', 'Realistic'],
     estimatedTime: '15-35 сек',
+    quality: 'balanced'
+  },
+  {
+    id: 'ideogram-v2',
+    name: 'Ideogram v2',
+    owner: 'ideogram-ai',
+    model: 'ideogram-v2',
+    description: 'Предыдущая версия с поддержкой inpainting для точного редактирования',
+    category: 'text-to-image',
+    supportsInpainting: true,
+    supportedAspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4'],
+    supportedStyles: ['Auto', 'General', 'Realistic', 'Design'],
+    estimatedTime: '20-40 сек',
     quality: 'balanced'
   },
   {
@@ -74,6 +93,7 @@ export const MODELS: ModelConfig[] = [
     model: 'flux-schnell',
     description: 'Быстрая версия FLUX - отличное качество за меньшее время',
     category: 'text-to-image',
+    supportsImageToImage: true,
     supportedAspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4'],
     estimatedTime: '10-20 сек',
     quality: 'fast'
@@ -85,6 +105,7 @@ export const MODELS: ModelConfig[] = [
     model: 'flux-dev',
     description: 'Улучшенная версия FLUX с лучшим качеством',
     category: 'text-to-image',
+    supportsImageToImage: true,
     supportedAspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4'],
     estimatedTime: '20-40 сек',
     quality: 'balanced'
@@ -96,6 +117,7 @@ export const MODELS: ModelConfig[] = [
     model: 'flux-pro',
     description: 'Премиум версия FLUX с максимальным качеством',
     category: 'text-to-image',
+    supportsImageToImage: true,
     supportedAspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4'],
     estimatedTime: '40-80 сек',
     quality: 'high'
@@ -107,6 +129,7 @@ export const MODELS: ModelConfig[] = [
     model: 'sdxl',
     description: 'Популярная модель с отличным балансом скорости и качества',
     category: 'text-to-image',
+    supportsImageToImage: true,
     supportedAspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4'],
     supportedStyles: ['Auto', 'Photographic', 'Anime', 'Digital Art', 'Comic Book', 'Fantasy Art'],
     estimatedTime: '15-30 сек',
