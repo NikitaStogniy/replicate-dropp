@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let input: any = {
+    const input: Record<string, string | undefined> = {
       prompt,
       style_type: styleType,
       aspect_ratio: aspectRatio,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import AuthGuard from './components/AuthGuard';
 
 interface GenerationResult {
@@ -262,10 +263,12 @@ export default function Home() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {result.output.map((imageUrl, index) => (
                       <div key={index} className="relative">
-                        <img
+                        <Image
                           src={imageUrl}
                           alt={`Сгенерированное изображение ${index + 1}`}
                           className="w-full rounded-lg shadow-md"
+                          width={800}
+                          height={800}
                           onError={(e) => {
                             console.error('Ошибка загрузки изображения:', imageUrl);
                             e.currentTarget.style.display = 'none';
@@ -282,10 +285,12 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="relative">
-                    <img
+                    <Image
                       src={typeof result.output === 'string' ? result.output : ''}
                       alt="Сгенерированное изображение"
                       className="w-full rounded-lg shadow-md"
+                      width={800}
+                      height={800}
                       onError={(e) => {
                         console.error('Ошибка загрузки изображения:', result.output);
                         e.currentTarget.style.display = 'none';
