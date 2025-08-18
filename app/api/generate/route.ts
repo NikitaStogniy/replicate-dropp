@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Подготавливаем входные параметры для модели
-    const input: Record<string, any> = {
+    const input: Record<string, string | number> = {
       prompt,
     };
 
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
       input: Object.keys(input).reduce((acc, key) => {
         acc[key] = key.includes('image') ? '[IMAGE_DATA]' : input[key];
         return acc;
-      }, {} as Record<string, any>)
+      }, {} as Record<string, string | number>)
     });
     
     console.log('Seed value:', seed);
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
     console.log('Replicate response first 100 chars:', typeof output === 'string' ? (output as string).substring(0, 100) : 'not string');
     console.log('Raw output:', output);
 
-    let finalOutput: any = output;
+    let finalOutput: string | string[] = output as string | string[];
     
     // Обработка массива от FLUX и других моделей
     if (Array.isArray(output) && output.length > 0) {
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
         
       } catch (error) {
         console.error('Error reading image stream:', error);
-        finalOutput = output;
+        finalOutput = output as string | string[];
       }
     }
     // Если это строка с бинарными данными PNG
@@ -239,7 +239,7 @@ export async function POST(request: NextRequest) {
         finalOutput = `data:image/png;base64,${base64}`;
       } catch (error) {
         console.error('Error converting PNG data:', error);
-        finalOutput = output;
+        finalOutput = output as string | string[];
       }
     }
     // Если это уже готовый URL
@@ -253,7 +253,12 @@ export async function POST(request: NextRequest) {
     console.log('Final processed output:', finalOutput);
 
     // Генерируем или получаем seed для ответа
-    const responseData: any = {
+    const responseData: {
+      id: string;
+      status: string;
+      output: string | string[];
+      seed?: number;
+    } = {
       id: 'sdk-generated',
       status: 'succeeded',
       output: finalOutput,
