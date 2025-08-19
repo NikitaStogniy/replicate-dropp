@@ -4,7 +4,7 @@ export interface ModelConfig {
   owner: string;
   model: string;
   description: string;
-  category: 'text-to-image' | 'character' | 'style-transfer';
+  category: 'text-to-image' | 'character' | 'style-transfer' | 'image-to-video';
   supportsCharacterImage?: boolean;
   requiresCharacterImage?: boolean;
   supportsImageToImage?: boolean;
@@ -144,6 +144,31 @@ export const MODELS: ModelConfig[] = [
     category: 'text-to-image',
     supportedAspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4'],
     estimatedTime: '20-35 сек',
+    quality: 'high'
+  },
+  {
+    id: 'dalle-3',
+    name: 'DALL-E 3',
+    owner: 'openai',
+    model: 'dall-e-3',
+    description: 'Современная модель OpenAI с отличным пониманием текста и высоким качеством изображений',
+    category: 'text-to-image',
+    supportedAspectRatios: ['1:1', '16:9', '9:16'],
+    supportedStyles: ['Auto', 'Photographic', 'Digital Art'],
+    estimatedTime: '15-30 сек',
+    quality: 'high'
+  },
+  {
+    id: 'kling-v21',
+    name: 'Kling v2.1',
+    owner: 'kwaivgi',
+    model: 'kling-v2.1',
+    description: 'Создание видео из статичного изображения (первый кадр обязателен). Высокое качество и реалистичные движения',
+    category: 'image-to-video',
+    supportsCharacterImage: true,
+    requiresCharacterImage: true,
+    supportedAspectRatios: ['1:1', '16:9', '9:16'],
+    estimatedTime: '2-5 мин',
     quality: 'high'
   }
 ];

@@ -415,7 +415,7 @@ export default function Home() {
               {currentModel?.supportsCharacterImage && (
                 <div>
                   <label className="block text-lg font-semibold text-gray-800 mb-3">
-                    Референсное изображение персонажа {currentModel?.requiresCharacterImage && <span className="text-red-500">*</span>}
+                    {currentModel?.category === 'image-to-video' ? 'Первый кадр видео' : 'Референсное изображение персонажа'} {currentModel?.requiresCharacterImage && <span className="text-red-500">*</span>}
                   </label>
                   <div className="relative">
                     <input
@@ -610,7 +610,9 @@ export default function Home() {
                 <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-3">
                   <PhotoIcon className="w-5 h-5 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800">Результат генерации</h2>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  {currentModel?.category === 'image-to-video' ? 'Результат генерации видео' : 'Результат генерации'}
+                </h2>
               </div>
               
               {result.seed && (
@@ -635,47 +637,80 @@ export default function Home() {
             
             {result.status === 'succeeded' && result.output && (
               <div className="max-w-4xl mx-auto">
-                {Array.isArray(result.output) ? (
-                  result.output.filter(imageUrl => imageUrl && typeof imageUrl === 'string' && imageUrl.trim() !== '').length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {result.output.filter(imageUrl => imageUrl && typeof imageUrl === 'string' && imageUrl.trim() !== '').map((imageUrl, index) => (
-                        <div key={index} className="group relative bg-white rounded-2xl p-2 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                          <Image
-                            src={imageUrl}
-                            alt={`Сгенерированное изображение ${index + 1}`}
-                            className="w-full rounded-xl"
-                            width={800}
-                            height={800}
-                            onError={(e) => {
-                              console.error('Ошибка загрузки изображения:', imageUrl);
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100">
-                            <div className="flex space-x-2 flex-wrap justify-center">
-                              <button
-                                onClick={() => startInpainting(imageUrl)}
-                                className="bg-green-600 text-white px-4 py-2 rounded-xl font-medium shadow-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                </svg>
-                                <span>Редактировать</span>
-                              </button>
-                              <button
-                                onClick={() => downloadImage(imageUrl, `generated-image-${index + 1}.png`)}
-                                className="bg-white text-gray-900 px-4 py-2 rounded-xl font-medium shadow-lg hover:bg-gray-100 transition-colors flex items-center space-x-2"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                <span>Скачать</span>
-                              </button>
+                {/* Check if this is a video result */}
+                {currentModel?.category === 'image-to-video' ? (
+                  <div className="group relative bg-white rounded-2xl p-2 shadow-lg hover:shadow-xl transition-shadow duration-300 max-w-2xl mx-auto">
+                    <video
+                      src={Array.isArray(result.output) ? result.output[0] : result.output}
+                      className="w-full rounded-xl"
+                      controls
+                      autoPlay
+                      loop
+                      muted
+                      onError={() => {
+                        console.error('Ошибка загрузки видео:', result.output);
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
+                      <div className="flex space-x-2 flex-wrap justify-center pointer-events-auto">
+                        <button
+                          onClick={() => {
+                            const videoUrl = Array.isArray(result.output) ? result.output[0] : result.output as string;
+                            downloadImage(videoUrl, 'generated-video.mp4');
+                          }}
+                          className="bg-white text-gray-900 px-4 py-2 rounded-xl font-medium shadow-lg hover:bg-gray-100 transition-colors flex items-center space-x-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <span>Скачать</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Regular image results */
+                  Array.isArray(result.output) ? (
+                    result.output.filter(imageUrl => imageUrl && typeof imageUrl === 'string' && imageUrl.trim() !== '').length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {result.output.filter(imageUrl => imageUrl && typeof imageUrl === 'string' && imageUrl.trim() !== '').map((imageUrl, index) => (
+                          <div key={index} className="group relative bg-white rounded-2xl p-2 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                            <Image
+                              src={imageUrl}
+                              alt={`Сгенерированное изображение ${index + 1}`}
+                              className="w-full rounded-xl"
+                              width={800}
+                              height={800}
+                              onError={(e) => {
+                                console.error('Ошибка загрузки изображения:', imageUrl);
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100">
+                              <div className="flex space-x-2 flex-wrap justify-center">
+                                <button
+                                  onClick={() => startInpainting(imageUrl)}
+                                  className="bg-green-600 text-white px-4 py-2 rounded-xl font-medium shadow-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                  </svg>
+                                  <span>Редактировать</span>
+                                </button>
+                                <button
+                                  onClick={() => downloadImage(imageUrl, `generated-image-${index + 1}.png`)}
+                                  className="bg-white text-gray-900 px-4 py-2 rounded-xl font-medium shadow-lg hover:bg-gray-100 transition-colors flex items-center space-x-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                  <span>Скачать</span>
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
                   ) : (
                     <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 text-center">
                       <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -730,6 +765,7 @@ export default function Home() {
                       <h3 className="text-lg font-semibold text-yellow-800 mb-2">Нет валидных изображений</h3>
                       <p className="text-yellow-700">Генерация завершилась, но не вернула валидные изображения</p>
                     </div>
+                  )
                   )
                 )}
               </div>

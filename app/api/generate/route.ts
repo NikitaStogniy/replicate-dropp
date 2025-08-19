@@ -93,7 +93,13 @@ export async function POST(request: NextRequest) {
     if (characterImage && selectedModel.supportsCharacterImage) {
       const imageBuffer = Buffer.from(await characterImage.arrayBuffer());
       const imageBase64 = `data:${characterImage.type};base64,${imageBuffer.toString('base64')}`;
-      input.character_reference_image = imageBase64;
+      
+      // Для Kling используем start_image, для остальных character_reference_image
+      if (selectedModel.category === 'image-to-video') {
+        input.start_image = imageBase64;
+      } else {
+        input.character_reference_image = imageBase64;
+      }
     }
 
     // Обрабатываем референсное изображение для image-to-image
