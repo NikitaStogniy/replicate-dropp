@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Marketing Materials Generator
+
+An internal tool for generating marketing materials and promotional content. This Next.js application provides a streamlined interface for creating various types of marketing assets for internal team use.
+
+## Features
+
+- Generate marketing copy and content
+- Create promotional materials
+- Internal team collaboration tools
+- Template-based content generation
 
 ## Getting Started
 
-First, run the development server:
+First, install dependencies and run the development server:
 
 ```bash
+npm install
 npm run dev
 # or
-yarn dev
+yarn install && yarn dev
 # or
-pnpm dev
-# or
-bun dev
+pnpm install && pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to access the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This tool is designed for internal use by the marketing team to:
+- Generate consistent marketing materials
+- Create content following brand guidelines
+- Collaborate on promotional campaigns
+- Maintain content templates and assets
 
-## Learn More
+## Development
 
-To learn more about Next.js, take a look at the following resources:
+The application is built with Next.js and uses modern React patterns. You can start editing by modifying `app/page.tsx` - the page will auto-update as you make changes.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Deploy the application using your preferred hosting platform. For Vercel deployment:
 
-## Deploy on Vercel
+```bash
+npm run build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Then deploy to [Vercel Platform](https://vercel.com/new) or your chosen hosting service.
