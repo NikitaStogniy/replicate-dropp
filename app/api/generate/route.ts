@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Replicate from 'replicate';
-import { getModelById } from '../../lib/models';
+import {
+  getModelById,
+  requiresCharacterImage,
+  supportsCharacterImage,
+  supportsImageToImage,
+  supportsInpainting,
+  supportsImageInput,
+  getSupportedStyles
+} from '../../lib/models';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,19 +19,30 @@ export async function POST(request: NextRequest) {
     const characterImage = formData.get('character_reference_image') as File;
     const styleType = formData.get('style_type') as string;
     const aspectRatio = formData.get('aspect_ratio') as string;
-    const renderingSpeed = formData.get('rendering_speed') as string;
-    const magicPrompt = formData.get('magic_prompt_option') as string;
     const seed = formData.get('seed') as string;
     const referenceImage = formData.get('reference_image') as File;
     const promptStrength = formData.get('prompt_strength') as string;
     const inpaintImage = formData.get('inpaint_image') as File;
     const inpaintMask = formData.get('inpaint_mask') as File;
 
-    if (!prompt) {
-      return NextResponse.json(
-        { error: 'Промпт обязателен' },
-        { status: 400 }
-      );
+    // Video-specific parameters
+    const duration = formData.get('duration') as string;
+    const resolution = formData.get('resolution') as string;
+    const promptOptimizer = formData.get('prompt_optimizer') as string;
+    const firstFrameImage = formData.get('first_frame_image') as File;
+    const lastFrameImage = formData.get('last_frame_image') as File;
+
+    // Handle multiple image inputs
+    const imageInputsCount = formData.get('image_inputs_count');
+    const imageInputs: string[] = [];
+    if (imageInputsCount) {
+      const count = parseInt(imageInputsCount as string, 10);
+      for (let i = 0; i < count; i++) {
+        const dataUrl = formData.get(`image_input_${i}_dataUrl`) as string;
+        if (dataUrl) {
+          imageInputs.push(dataUrl);
+        }
+      }
     }
 
     if (!modelId) {
@@ -41,12 +60,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (selectedModel.requiresCharacterImage && !characterImage) {
-      return NextResponse.json(
-        { error: 'Для этой модели необходимо референсное изображение' },
-        { status: 400 }
-      );
-    }
+    // Note: Schema-driven validation happens on the frontend via validateGenerationParams
+    // Backend keeps minimal validation to avoid duplication
 
     if (!process.env.REPLICATE_API_TOKEN) {
       return NextResponse.json(
@@ -61,27 +76,18 @@ export async function POST(request: NextRequest) {
     });
 
     // Подготавливаем входные параметры для модели
-    const input: Record<string, string | number> = {
+    const input: Record<string, string | number | string[]> = {
       prompt,
     };
 
     // Добавляем параметры в зависимости от модели
-    if (selectedModel.supportedStyles && styleType) {
+    if (getSupportedStyles(selectedModel) && styleType) {
       input.style_type = styleType;
     }
-    
-    if (aspectRatio) {
+
+    // Only send aspect_ratio if the model schema explicitly defines it
+    if (aspectRatio && selectedModel.schema.properties.aspect_ratio) {
       input.aspect_ratio = aspectRatio;
-    }
-
-    // Добавляем rendering_speed только для моделей, которые его поддерживают
-    if (renderingSpeed !== 'Default' && (selectedModel.id === 'ideogram-character' || selectedModel.owner !== 'ideogram-ai')) {
-      input.rendering_speed = renderingSpeed;
-    }
-
-    // Добавляем magic_prompt_option для моделей Ideogram (только если не Auto)
-    if (selectedModel.owner === 'ideogram-ai' && magicPrompt && magicPrompt !== 'Auto') {
-      input.magic_prompt_option = magicPrompt;
     }
 
     // Добавляем seed если указан
@@ -90,45 +96,85 @@ export async function POST(request: NextRequest) {
     }
 
     // Обрабатываем загрузку изображения для персонажей
-    if (characterImage && selectedModel.supportsCharacterImage) {
+    if (characterImage && supportsCharacterImage(selectedModel)) {
       const imageBuffer = Buffer.from(await characterImage.arrayBuffer());
       const imageBase64 = `data:${characterImage.type};base64,${imageBuffer.toString('base64')}`;
-      
-      // Для Kling используем start_image, для остальных character_reference_image
-      if (selectedModel.category === 'image-to-video') {
+
+      // Different models expect different parameter names for the reference image
+      if (selectedModel.id === 'hailuo-02') {
+        // Hailuo-02 expects first_frame_image
+        input.first_frame_image = imageBase64;
+      } else if (selectedModel.category === 'image-to-video') {
+        // Other image-to-video models use start_image
         input.start_image = imageBase64;
       } else {
+        // Text-to-image models use character_reference_image
         input.character_reference_image = imageBase64;
       }
     }
 
     // Обрабатываем референсное изображение для image-to-image
-    if (referenceImage && selectedModel.supportsImageToImage) {
+    if (referenceImage && supportsImageToImage(selectedModel)) {
       const imageBuffer = Buffer.from(await referenceImage.arrayBuffer());
       const imageBase64 = `data:${referenceImage.type};base64,${imageBuffer.toString('base64')}`;
-      
+
       // Добавляем изображение и prompt_strength
       input.image = imageBase64;
-      
+
       if (promptStrength && !isNaN(parseFloat(promptStrength))) {
         input.prompt_strength = parseFloat(promptStrength);
       }
-      
+
       console.log('Используем image-to-image режим с prompt_strength:', input.prompt_strength);
     }
     
     // Обработка inpainting для Ideogram v2
-    if (inpaintImage && inpaintMask && selectedModel.supportsInpainting) {
+    if (inpaintImage && inpaintMask && supportsInpainting(selectedModel)) {
       const imageBuffer = Buffer.from(await inpaintImage.arrayBuffer());
       const imageBase64 = `data:${inpaintImage.type};base64,${imageBuffer.toString('base64')}`;
-      
+
       const maskBuffer = Buffer.from(await inpaintMask.arrayBuffer());
       const maskBase64 = `data:${inpaintMask.type};base64,${maskBuffer.toString('base64')}`;
-      
+
       input.image = imageBase64;
       input.mask = maskBase64;
-      
+
       console.log('Используем inpainting режим для', selectedModel.name);
+    }
+
+    // Handle image_input array (for models like nano-banana)
+    if (imageInputs.length > 0 && supportsImageInput(selectedModel)) {
+      input.image_input = imageInputs;
+      console.log('Using image_input array with', imageInputs.length, 'images for', selectedModel.name);
+    }
+
+    // Handle video-specific parameters
+    if (duration && !isNaN(Number(duration))) {
+      input.duration = parseInt(duration, 10);
+    }
+
+    // Only send resolution if the model schema explicitly defines it
+    if (resolution && selectedModel.schema.properties.resolution) {
+      input.resolution = resolution;
+    }
+
+    if (promptOptimizer !== null && promptOptimizer !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (input as any).prompt_optimizer = promptOptimizer === 'true';
+    }
+
+    // Handle first frame image for video
+    if (firstFrameImage) {
+      const imageBuffer = Buffer.from(await firstFrameImage.arrayBuffer());
+      const imageBase64 = `data:${firstFrameImage.type};base64,${imageBuffer.toString('base64')}`;
+      input.first_frame_image = imageBase64;
+    }
+
+    // Handle last frame image for video
+    if (lastFrameImage) {
+      const imageBuffer = Buffer.from(await lastFrameImage.arrayBuffer());
+      const imageBase64 = `data:${lastFrameImage.type};base64,${imageBuffer.toString('base64')}`;
+      input.last_frame_image = imageBase64;
     }
 
     // Формируем имя модели для Replicate
@@ -136,28 +182,41 @@ export async function POST(request: NextRequest) {
 
     console.log('Sending to Replicate:', {
       modelName,
+      modelCategory: selectedModel.category,
       input: Object.keys(input).reduce((acc, key) => {
-        acc[key] = key.includes('image') ? '[IMAGE_DATA]' : input[key];
+        const value = input[key];
+        acc[key] = key.includes('image') ? '[IMAGE_DATA]' : (Array.isArray(value) ? value.length : value);
         return acc;
       }, {} as Record<string, string | number>)
     });
-    
+
     console.log('Seed value:', seed);
     console.log('Parsed seed:', seed && seed.trim() && !isNaN(Number(seed)) ? parseInt(seed, 10) : 'none');
     console.log('Final input object:', JSON.stringify(input, null, 2));
 
     // Запускаем генерацию через SDK
     const output = await replicate.run(modelName as `${string}/${string}`, { input });
-    
-    console.log('Replicate response type:', typeof output);
-    console.log('Replicate response is array:', Array.isArray(output));
-    console.log('Replicate response first 100 chars:', typeof output === 'string' ? (output as string).substring(0, 100) : 'not string');
+
+    const isVideoModel = selectedModel.category === 'text-to-video' || selectedModel.category === 'image-to-video';
+
+    console.log('=== REPLICATE OUTPUT DEBUG ===');
+    console.log('Model category:', selectedModel.category);
+    console.log('Is video model:', isVideoModel);
+    console.log('Output type:', typeof output);
+    console.log('Output is array:', Array.isArray(output));
+    console.log('Output is ReadableStream:', output && typeof output === 'object' && 'getReader' in output);
+    console.log('Output first 200 chars:', typeof output === 'string' ? (output as string).substring(0, 200) : 'not string');
     console.log('Raw output:', output);
+    console.log('=== END DEBUG ===');
 
     let finalOutput: string | string[] = output as string | string[];
-    
+
+    // Для видео моделей - если получили URL строку, сразу возвращаем её
+    if (isVideoModel && typeof finalOutput === 'string' && finalOutput.startsWith('http')) {
+      console.log('Video model returned direct URL:', finalOutput);
+    }
     // Обработка массива от FLUX и других моделей
-    if (Array.isArray(output) && output.length > 0) {
+    else if (Array.isArray(output) && output.length > 0) {
       console.log('Processing array output, length:', output.length);
       
       // Обрабатываем каждый элемент массива
@@ -209,33 +268,46 @@ export async function POST(request: NextRequest) {
     // Если это ReadableStream
     if (output && typeof output === 'object' && 'getReader' in output) {
       console.log('Processing ReadableStream...');
-      const reader = (output as ReadableStream).getReader();
-      const chunks: Uint8Array[] = [];
-      
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          chunks.push(value);
-        }
-        
-        const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-        const buffer = new Uint8Array(totalLength);
-        let offset = 0;
-        for (const chunk of chunks) {
-          buffer.set(chunk, offset);
-          offset += chunk.length;
-        }
-        
-        const base64 = Buffer.from(buffer).toString('base64');
-        finalOutput = `data:image/png;base64,${base64}`;
-        
-      } catch (error) {
-        console.error('Error reading image stream:', error);
+
+      // Для видео моделей - не конвертируем в base64, ждём URL
+      if (isVideoModel) {
+        console.log('Video model detected - skipping stream conversion, expecting URL');
         finalOutput = output as string | string[];
+      } else {
+        // Для изображений - конвертируем stream в base64
+        const reader = (output as ReadableStream).getReader();
+        const chunks: Uint8Array[] = [];
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+          }
+
+          const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+          const buffer = new Uint8Array(totalLength);
+          let offset = 0;
+          for (const chunk of chunks) {
+            buffer.set(chunk, offset);
+            offset += chunk.length;
+          }
+
+          const base64 = Buffer.from(buffer).toString('base64');
+          finalOutput = `data:image/png;base64,${base64}`;
+
+        } catch (error) {
+          console.error('Error reading image stream:', error);
+          finalOutput = output as string | string[];
+        }
       }
     }
-    // Если это строка с бинарными данными PNG
+    // Если это уже готовый URL (включая видео)
+    if (typeof output === 'string' && ((output as string).startsWith('http') || (output as string).startsWith('data:'))) {
+      console.log('Output is already a URL');
+      finalOutput = output;
+    }
+    // Если это строка с бинарными данными PNG (только для изображений)
     else if (typeof output === 'string' && (output as string).startsWith('�PNG')) {
       console.log('Converting binary PNG string to base64...');
       try {
@@ -248,15 +320,11 @@ export async function POST(request: NextRequest) {
         finalOutput = output as string | string[];
       }
     }
-    // Если это уже готовый URL
-    else if (typeof output === 'string' && ((output as string).startsWith('http') || (output as string).startsWith('data:'))) {
-      console.log('Output is already a URL');
-      finalOutput = output;
-    }
 
     console.log('Final output type:', typeof finalOutput);
     console.log('Final output first 100 chars:', typeof finalOutput === 'string' ? (finalOutput as string).substring(0, 100) : 'not string');
     console.log('Final processed output:', finalOutput);
+    console.log('Selected model category:', selectedModel.category);
 
     // Генерируем или получаем seed для ответа
     const responseData: {
