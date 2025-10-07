@@ -3,10 +3,11 @@
 import { useEffect } from "react";
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import AuthGuard from "./components/AuthGuard";
-import { getModelById, getAllModels } from "./lib/models";
+import { getModelById, getAllModels, getDefaultParametersForModel } from "./lib/models";
 import { useAppDispatch, useAppSelector } from "./store";
 import { toggleModelSelector } from "./store/slices/uiSlice";
 import { loadSelectedModelFromStorage, setSelectedModel } from "./store/slices/modelsSlice";
+import { setParameters } from "./store/slices/generatorSlice";
 import { useImageDownload } from "./hooks/useImageDownload";
 import { useGenerationHandler } from "./hooks/useGenerationHandler";
 import { useInpaintingHandler } from "./hooks/useInpaintingHandler";
@@ -17,7 +18,7 @@ import ModelSelector from "./components/ModelSelector/ModelSelector";
 import GenerateButton from "./components/Generator/GenerateButton";
 
 // Containers
-import GeneratorForm from "./containers/GeneratorForm";
+import DynamicGeneratorForm from "./containers/DynamicGeneratorForm";
 import ResultsSection from "./containers/ResultsSection";
 import InpaintingSection from "./containers/InpaintingSection";
 
@@ -45,29 +46,22 @@ export default function Home() {
     dispatch(loadSelectedModelFromStorage());
   }, [dispatch]);
 
+  // Initialize parameters with defaults when model changes
+  useEffect(() => {
+    if (currentModel) {
+      const defaults = getDefaultParametersForModel(currentModel);
+      dispatch(setParameters(defaults));
+    }
+  }, [currentModel, dispatch]);
+
   const handleModelChange = (modelId: string) => {
     dispatch(setSelectedModel(modelId));
   };
 
   const onGenerate = async () => {
-    // Collect all parameters for validation
-    const parameters = {
-      prompt: generatorState.prompt,
-      characterImage: generatorState.characterImage,
-      imageInputs: generatorState.imageInputs,
-      styleType: generatorState.styleType,
-      aspectRatio: generatorState.aspectRatio,
-      seed: generatorState.seed,
-      duration: generatorState.duration,
-      resolution: generatorState.resolution,
-      promptOptimizer: generatorState.promptOptimizer,
-      firstFrameImage: generatorState.firstFrameImage,
-      lastFrameImage: generatorState.lastFrameImage,
-    };
-
     const validationError = validateGenerationParams({
       currentModel,
-      parameters,
+      parameters: generatorState.parameters,
       inpaintingMode: uiState.inpaintingMode,
       maskPrompt: uiState.maskPrompt,
     });
@@ -120,18 +114,14 @@ export default function Home() {
               inpaintingMode={uiState.inpaintingMode}
             />
 
-            <GeneratorForm
-              currentModel={currentModel}
-              {...generatorState}
-            />
+            <DynamicGeneratorForm currentModel={currentModel} />
 
             <GenerateButton
               isGenerating={isGenerating}
-              prompt={generatorState.prompt}
               inpaintingMode={uiState.inpaintingMode}
               maskPrompt={uiState.maskPrompt}
               currentModel={currentModel}
-              characterImage={generatorState.characterImage}
+              parameters={generatorState.parameters}
               onGenerate={onGenerate}
             />
           </div>

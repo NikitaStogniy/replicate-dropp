@@ -160,7 +160,7 @@ export const getDefaultResolutions = (model: ModelConfig): string[] => {
 // Schema-driven validation for all parameters
 export const validateAllParameters = (
   model: ModelConfig,
-  parameters: Record<string, any>
+  parameters: Record<string, unknown>
 ): { valid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
@@ -171,7 +171,7 @@ export const validateAllParameters = (
 
     // Get the UI field name (camelCase) or use schema name
     const uiField = schema['x-ui-field'] || paramName;
-    const value = parameters[uiField];
+    const value = parameters[uiField] as string | number | boolean | null | undefined;
 
     const validation = validateParameter(model, paramName, value);
     if (!validation.valid && validation.error) {
@@ -188,7 +188,7 @@ export const validateAllParameters = (
 
     if (schemaEntry && value !== undefined && value !== null && value !== '') {
       const [paramName] = schemaEntry;
-      const validation = validateParameter(model, paramName, value);
+      const validation = validateParameter(model, paramName, value as string | number | boolean | null);
 
       // Only add error if not already added by required check
       if (!validation.valid && validation.error && !errors.includes(validation.error)) {
@@ -203,9 +203,9 @@ export const validateAllParameters = (
 // Map UI parameters to API parameters using schema field mapping
 export const mapParametersToAPI = (
   model: ModelConfig,
-  uiParameters: Record<string, any>
-): Record<string, any> => {
-  const apiParams: Record<string, any> = {};
+  uiParameters: Record<string, unknown>
+): Record<string, unknown> => {
+  const apiParams: Record<string, unknown> = {};
 
   Object.entries(model.schema.properties).forEach(([schemaKey, schema]) => {
     // Get the UI field name (camelCase) and API field name (snake_case)
@@ -221,4 +221,24 @@ export const mapParametersToAPI = (
   });
 
   return apiParams;
+};
+
+// Initialize parameters with default values from schema
+export const getDefaultParametersForModel = (model: ModelConfig): Record<string, unknown> => {
+  const defaults: Record<string, unknown> = {};
+
+  Object.entries(model.schema.properties).forEach(([schemaKey, schema]) => {
+    const uiField = schema['x-ui-field'] || schemaKey;
+
+    // Set default value if it exists
+    if (schema.default !== undefined && schema.default !== null) {
+      defaults[uiField] = schema.default;
+    }
+    // For arrays, initialize with empty array if no default
+    else if (schema.type === 'array' && schema.default === undefined) {
+      defaults[uiField] = [];
+    }
+  });
+
+  return defaults;
 };

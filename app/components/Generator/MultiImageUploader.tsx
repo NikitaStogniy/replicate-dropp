@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { ImageInputItem } from '../../store/slices/generatorSlice';
 
@@ -78,9 +79,11 @@ export default function MultiImageUploader({ label, files, onChange }: MultiImag
           {files.map((file, index) => (
             <div key={index} className="relative group">
               <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-green-400">
-                <img
+                <Image
                   src={file.dataUrl}
                   alt={`Upload ${index + 1}`}
+                  width={200}
+                  height={200}
                   className="w-full h-full object-cover"
                 />
               </div>

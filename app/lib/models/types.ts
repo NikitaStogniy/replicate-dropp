@@ -28,7 +28,7 @@ export interface ParameterSchema {
   // Custom extensions for UI rendering
   'x-component'?: UIComponentType;
   'x-depends-on'?: string; // Field name this parameter depends on
-  'x-depends-value'?: any; // Value the dependency must have
+  'x-depends-value'?: string | number | boolean | string[] | number[]; // Value the dependency must have
   'x-grid-column'?: 1 | 2; // Which column to render in (1 = left, 2 = right)
   // Field name mapping for UI ↔ API
   'x-ui-field'?: string; // Field name in UI/Redux (camelCase)
@@ -57,7 +57,7 @@ export interface ModelConfig {
   owner: string;
   model: string;
   description: string;
-  category: 'text-to-image' | 'character' | 'style-transfer' | 'image-to-video' | 'text-to-video';
+  category: 'text-to-image' | 'image-to-image' | 'character' | 'style-transfer' | 'image-to-video' | 'text-to-video';
   estimatedTime: string;
   quality: 'fast' | 'balanced' | 'high';
   schema: ModelSchema;

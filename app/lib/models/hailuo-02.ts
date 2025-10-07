@@ -11,7 +11,7 @@ export const hailuo02: ModelConfig = {
   estimatedTime: "30-60 сек",
   quality: "high",
   schema: {
-    required: ["prompt", "duration"],
+    required: ["prompt", "duration", "first_frame_image"],
     properties: {
       prompt: {
         type: "string",

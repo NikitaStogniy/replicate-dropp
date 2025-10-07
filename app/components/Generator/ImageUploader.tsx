@@ -1,18 +1,20 @@
 'use client';
 
 import { PhotoIcon } from '@heroicons/react/24/outline';
+import { fileToImageValue, type ImageValue } from '@/app/utils/fileConversion';
 
 interface ImageUploaderProps {
   label: string;
-  file: File | null;
+  file: ImageValue | null | undefined;
   required?: boolean;
-  onChange: (file: File | null) => void;
+  onChange: (file: ImageValue | null) => void;
 }
 
 export default function ImageUploader({ label, file, required = false, onChange }: ImageUploaderProps) {
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      onChange(e.target.files[0]);
+      const imageValue = await fileToImageValue(e.target.files[0]);
+      onChange(imageValue);
     }
   };
 

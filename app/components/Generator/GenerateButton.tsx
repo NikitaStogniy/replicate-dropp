@@ -1,40 +1,47 @@
 'use client';
 
 import { SparklesIcon } from '@heroicons/react/24/outline';
-import { ModelConfig, supportsInpainting, requiresCharacterImage } from '@/app/lib/models';
+import { ModelConfig, supportsInpainting, validateAllParameters } from '@/app/lib/models';
 
 interface GenerateButtonProps {
   isGenerating: boolean;
-  prompt: string;
   inpaintingMode: boolean;
   maskPrompt: string;
   currentModel: ModelConfig | undefined;
-  characterImage: File | null;
+  parameters: Record<string, unknown>;
   onGenerate: () => void;
 }
 
 export default function GenerateButton({
   isGenerating,
-  prompt,
   inpaintingMode,
   maskPrompt,
   currentModel,
-  characterImage,
+  parameters,
   onGenerate,
 }: GenerateButtonProps) {
+  // Validate using schema-driven validation
+  const validationResult = currentModel
+    ? validateAllParameters(currentModel, parameters)
+    : { valid: false, errors: ['Модель не выбрана'] };
+
   const isDisabled =
     isGenerating ||
-    (!prompt && !inpaintingMode) ||
-    (inpaintingMode && (!maskPrompt || (currentModel && !supportsInpainting(currentModel)))) ||
-    (currentModel && requiresCharacterImage(currentModel) && !characterImage);
+    !validationResult.valid ||
+    (inpaintingMode && (!maskPrompt || (currentModel && !supportsInpainting(currentModel))));
 
   const getHelpText = () => {
-    if (!prompt && !inpaintingMode) return 'Введите описание изображения';
+    // Show inpainting-specific errors first (not schema-related)
     if (inpaintingMode && currentModel && !supportsInpainting(currentModel))
       return 'Выберите модель с поддержкой inpainting (Ideogram)';
-    if (inpaintingMode && !maskPrompt) return 'Опишите что вы хотите изменить в выделенной области';
-    if (currentModel && requiresCharacterImage(currentModel) && !characterImage)
-      return 'Загрузите референсное изображение для этой модели';
+    if (inpaintingMode && !maskPrompt)
+      return 'Опишите что вы хотите изменить в выделенной области';
+
+    // Show first validation error from schema
+    if (!validationResult.valid && validationResult.errors.length > 0) {
+      return validationResult.errors[0];
+    }
+
     return null;
   };
 

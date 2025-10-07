@@ -3,7 +3,7 @@ import { supportsInpainting, validateAllParameters } from '../lib/models';
 
 interface ValidationParams {
   currentModel: ModelConfig | null | undefined;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   inpaintingMode: boolean;
   maskPrompt: string;
 }

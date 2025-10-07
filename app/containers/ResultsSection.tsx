@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import type { GenerationResult } from '../store/services/replicateApi';
-import type { ModelConfig } from '../lib/models/types';
-import ResultHeader from '../components/Results/ResultHeader';
-import VideoResult from '../components/Results/VideoResult';
-import ResultsGrid from '../components/Results/ResultsGrid';
-import ResultStatus from '../components/Results/ResultStatus';
+import type { GenerationResult } from "../store/services/replicateApi";
+import type { ModelConfig } from "../lib/models/types";
+import ResultHeader from "../components/Results/ResultHeader";
+import VideoResult from "../components/Results/VideoResult";
+import ResultsGrid from "../components/Results/ResultsGrid";
+import ResultStatus from "../components/Results/ResultStatus";
 
 interface ResultsSectionProps {
   result: GenerationResult;
@@ -27,21 +27,19 @@ export default function ResultsSection({
     >
       <ResultHeader
         title={
-          currentModel?.category === 'image-to-video'
-            ? 'Результат генерации видео'
-            : 'Результат генерации'
+          currentModel?.category === "image-to-video"
+            ? "Результат генерации видео"
+            : "Результат генерации"
         }
         seed={result.seed}
       />
 
-      {result.status === 'succeeded' && result.output && (
+      {result.status === "succeeded" && result.output && (
         <div className="max-w-4xl mx-auto">
-          {currentModel?.category === 'image-to-video' ? (
+          {currentModel?.category === "image-to-video" ? (
             <VideoResult
               videoUrl={
-                Array.isArray(result.output)
-                  ? result.output[0]
-                  : result.output
+                Array.isArray(result.output) ? result.output[0] : result.output
               }
               onDownload={onDownload}
             />
@@ -55,11 +53,11 @@ export default function ResultsSection({
         </div>
       )}
 
-      {(result.status === 'processing' ||
-        result.status === 'failed' ||
-        result.status === 'starting') && (
+      {(result.status === "processing" ||
+        result.status === "failed" ||
+        result.status === "starting") && (
         <ResultStatus
-          status={result.status as 'processing' | 'failed' | 'starting'}
+          status={result.status as "processing" | "failed" | "starting"}
           error={result.error}
         />
       )}

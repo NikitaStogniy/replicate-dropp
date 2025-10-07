@@ -2,21 +2,10 @@ import { useCallback } from 'react';
 import { useAppDispatch } from '../store';
 import { useGenerateImageMutation } from '../store/services/replicateApi';
 import { setResult } from '../store/slices/generatorSlice';
-import type { ImageInputItem } from '../store/slices/generatorSlice';
 
 interface GenerationParams {
-  prompt: string;
+  parameters: Record<string, unknown>;
   selectedModelId: string;
-  characterImage: File | null;
-  imageInputs: ImageInputItem[];
-  styleType: string;
-  aspectRatio: string;
-  seed: string;
-  duration: number;
-  resolution: string;
-  promptOptimizer: boolean;
-  firstFrameImage: File | null;
-  lastFrameImage: File | null;
   inpaintingMode: boolean;
   inpaintImage: string | null;
   maskImage: string | null;
@@ -30,18 +19,8 @@ export const useGenerationHandler = () => {
   const handleGenerate = useCallback(
     async (params: GenerationParams) => {
       const {
-        prompt,
+        parameters,
         selectedModelId,
-        characterImage,
-        imageInputs,
-        styleType,
-        aspectRatio,
-        seed,
-        duration,
-        resolution,
-        promptOptimizer,
-        firstFrameImage,
-        lastFrameImage,
         inpaintingMode,
         inpaintImage,
         maskImage,
@@ -49,38 +28,33 @@ export const useGenerationHandler = () => {
       } = params;
 
       try {
-        let inpaintImageFile: File | null = null;
-        let inpaintMaskFile: File | null = null;
+        // Build final parameters with inpainting overrides
+        const finalParams = { ...parameters };
 
+        // Handle inpainting mode
         if (inpaintingMode && inpaintImage && maskImage) {
           const imageBlob = await fetch(inpaintImage).then((r) => r.blob());
-          inpaintImageFile = new File([imageBlob], 'inpaint-source.png', {
+          const inpaintImageFile = new File([imageBlob], 'inpaint-source.png', {
             type: 'image/png',
           });
 
           const maskBlob = await fetch(maskImage).then((r) => r.blob());
-          inpaintMaskFile = new File([maskBlob], 'inpaint-mask.png', {
+          const inpaintMaskFile = new File([maskBlob], 'inpaint-mask.png', {
             type: 'image/png',
           });
+
+          finalParams.inpaintImage = inpaintImageFile;
+          finalParams.inpaintMask = inpaintMaskFile;
+
+          // Override prompt with mask prompt in inpainting mode
+          if (maskPrompt) {
+            finalParams.prompt = maskPrompt;
+          }
         }
 
-        const finalPrompt = inpaintingMode && maskPrompt ? maskPrompt : prompt;
-
         const data = await generateImage({
-          prompt: finalPrompt,
           model_id: selectedModelId,
-          character_reference_image: characterImage,
-          image_inputs: imageInputs.length > 0 ? imageInputs : undefined,
-          style_type: styleType,
-          aspect_ratio: aspectRatio,
-          seed: seed,
-          inpaint_image: inpaintImageFile,
-          inpaint_mask: inpaintMaskFile,
-          duration: duration,
-          resolution: resolution,
-          prompt_optimizer: promptOptimizer,
-          first_frame_image: firstFrameImage,
-          last_frame_image: lastFrameImage,
+          parameters: finalParams,
         }).unwrap();
 
         dispatch(setResult({ modelId: selectedModelId, result: data }));

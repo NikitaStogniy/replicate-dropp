@@ -13,21 +13,7 @@ export const store = configureStore({
     models: modelsReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        // Игнорируем File объекты в Redux
-        ignoredActions: [
-          'generator/setCharacterImage',
-          'generator/setFirstFrameImage',
-          'generator/setLastFrameImage',
-        ],
-        ignoredPaths: [
-          'generator.characterImage',
-          'generator.firstFrameImage',
-          'generator.lastFrameImage',
-        ],
-      },
-    }).concat(replicateApi.middleware),
+    getDefaultMiddleware().concat(replicateApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

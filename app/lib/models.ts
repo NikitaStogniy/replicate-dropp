@@ -24,6 +24,7 @@ export {
   getParameterSchema,
   validateAllParameters,
   mapParametersToAPI,
+  getDefaultParametersForModel,
   isVideoModel,
   isImageModel,
   getDefaultResolutions,

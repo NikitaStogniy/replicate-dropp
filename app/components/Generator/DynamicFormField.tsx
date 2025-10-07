@@ -1,6 +1,8 @@
 'use client';
 
+import { memo } from 'react';
 import type { ParameterSchema } from '@/app/lib/models/types';
+import type { ImageValue } from '@/app/utils/fileConversion';
 import PromptInput from './PromptInput';
 import ImageUploader from './ImageUploader';
 import StyleSelector from './StyleSelector';
@@ -13,21 +15,12 @@ import PromptOptimizerToggle from './PromptOptimizerToggle';
 interface DynamicFormFieldProps {
   paramName: string;
   schema: ParameterSchema;
-  value: any;
-  onChange: (value: any) => void;
+  value: string | number | boolean | ImageValue | null | undefined;
+  onChange: (value: string | number | boolean | ImageValue | null) => void;
   required?: boolean;
 }
 
-// Label mapping for common aspect ratios
-const ratioLabels: Record<string, string> = {
-  '1:1': 'Квадрат',
-  '16:9': 'Широкий',
-  '9:16': 'Вертикальный',
-  '4:3': 'Альбомный',
-  '3:4': 'Портретный',
-};
-
-export default function DynamicFormField({
+function DynamicFormFieldComponent({
   paramName,
   schema,
   value,
@@ -42,7 +35,7 @@ export default function DynamicFormField({
     case 'textarea':
       return (
         <PromptInput
-          value={value || ''}
+          value={typeof value === 'string' ? value : ''}
           onChange={onChange}
         />
       );
@@ -51,7 +44,7 @@ export default function DynamicFormField({
       return (
         <ImageUploader
           label={schema.title}
-          file={value}
+          file={typeof value === 'object' && value !== null && 'dataUrl' in value ? value : null}
           required={required}
           onChange={onChange}
         />
@@ -66,7 +59,7 @@ export default function DynamicFormField({
           return (
             <AspectRatioSelector
               ratios={schema.enum as string[]}
-              selected={value || schema.default || schema.enum[0]}
+              selected={(value as string) || (schema.default as string) || (schema.enum[0] as string)}
               onChange={onChange}
             />
           );
@@ -77,7 +70,7 @@ export default function DynamicFormField({
           return (
             <DurationSelector
               durations={schema.enum as number[]}
-              selected={value || schema.default || schema.enum[0]}
+              selected={(value as number) || (schema.default as number) || (schema.enum[0] as number)}
               onChange={onChange}
             />
           );
@@ -88,7 +81,7 @@ export default function DynamicFormField({
           return (
             <ResolutionSelector
               resolutions={schema.enum as string[]}
-              selected={value || schema.default || schema.enum[0]}
+              selected={(value as string) || (schema.default as string) || (schema.enum[0] as string)}
               onChange={onChange}
             />
           );
@@ -99,7 +92,7 @@ export default function DynamicFormField({
           return (
             <StyleSelector
               styles={schema.enum as string[]}
-              selected={value || schema.default || schema.enum[0]}
+              selected={(value as string) || (schema.default as string) || (schema.enum[0] as string)}
               onChange={onChange}
             />
           );
@@ -140,7 +133,7 @@ export default function DynamicFormField({
               {schema.title}
             </label>
             <select
-              value={value || schema.default || ''}
+              value={(value as string) || (schema.default as string) || ''}
               onChange={(e) => onChange(e.target.value)}
               className="w-full p-3 rounded-xl border-2 border-gray-200 bg-white/70 text-gray-700 focus:border-blue-500 focus:outline-none transition-colors"
             >
@@ -159,7 +152,7 @@ export default function DynamicFormField({
       if (schema.type === 'boolean') {
         return (
           <PromptOptimizerToggle
-            enabled={value !== undefined ? value : (schema.default as boolean || false)}
+            enabled={typeof value === 'boolean' ? value : (schema.default as boolean || false)}
             onChange={onChange}
           />
         );
@@ -183,7 +176,7 @@ export default function DynamicFormField({
           </label>
           <input
             type="number"
-            value={value || ''}
+            value={(value as number) || ''}
             onChange={(e) => onChange(e.target.value ? parseInt(e.target.value, 10) : null)}
             min={schema.minimum}
             max={schema.maximum}
@@ -201,7 +194,7 @@ export default function DynamicFormField({
           </label>
           <input
             type="text"
-            value={value || ''}
+            value={(value as string) || ''}
             onChange={(e) => onChange(e.target.value)}
             className="w-full p-3 rounded-xl border-2 border-gray-200 bg-white/70 text-gray-700 focus:border-blue-500 focus:outline-none transition-colors"
             placeholder={schema.description}
@@ -230,3 +223,58 @@ function inferComponentType(schema: ParameterSchema): string {
   }
   return 'text-input';
 }
+
+// Custom comparison function for React.memo
+function arePropsEqual(
+  prevProps: DynamicFormFieldProps,
+  nextProps: DynamicFormFieldProps
+): boolean {
+  // Compare primitive props
+  if (
+    prevProps.paramName !== nextProps.paramName ||
+    prevProps.required !== nextProps.required
+  ) {
+    return false;
+  }
+
+  // Deep compare schema (only check relevant properties)
+  if (
+    prevProps.schema.title !== nextProps.schema.title ||
+    prevProps.schema.type !== nextProps.schema.type ||
+    prevProps.schema['x-component'] !== nextProps.schema['x-component']
+  ) {
+    return false;
+  }
+
+  // Deep compare value (handles primitives, ImageValue objects)
+  if (typeof prevProps.value !== typeof nextProps.value) {
+    return false;
+  }
+
+  // For ImageValue objects, compare properties
+  if (
+    typeof prevProps.value === 'object' &&
+    prevProps.value !== null &&
+    typeof nextProps.value === 'object' &&
+    nextProps.value !== null
+  ) {
+    const prevImg = prevProps.value as ImageValue;
+    const nextImg = nextProps.value as ImageValue;
+
+    if (
+      'dataUrl' in prevImg &&
+      'dataUrl' in nextImg &&
+      prevImg.dataUrl !== nextImg.dataUrl
+    ) {
+      return false;
+    }
+  } else if (prevProps.value !== nextProps.value) {
+    // For primitives
+    return false;
+  }
+
+  return true;
+}
+
+// Export memoized component with custom comparison
+export default memo(DynamicFormFieldComponent, arePropsEqual);
