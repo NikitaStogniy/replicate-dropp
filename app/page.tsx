@@ -18,6 +18,7 @@ import { showError } from "./utils/toast";
 // Components
 import ModelSelector from "./components/ModelSelector/ModelSelector";
 import GenerateButton from "./components/Generator/GenerateButton";
+import GenerationHistory from "./components/History/GenerationHistory";
 
 // Containers
 import DynamicGeneratorForm from "./containers/DynamicGeneratorForm";
@@ -86,6 +87,9 @@ export default function Home() {
   return (
     <ErrorBoundary>
       <AuthGuard>
+        {/* Generation History */}
+        <GenerationHistory />
+
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 py-8">
           <div className="max-w-5xl mx-auto px-4">
           {/* Header */}

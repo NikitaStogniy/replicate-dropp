@@ -2,7 +2,10 @@ import { useCallback } from 'react';
 import { useAppDispatch } from '../store';
 import { useGenerateImageMutation } from '../store/services/replicateApi';
 import { setResult } from '../store/slices/generatorSlice';
+import { addHistoryItem } from '../store/slices/historySlice';
 import { showError, showSuccess } from '../utils/toast';
+import { imageUrlToBase64 } from '../utils/imageStorage';
+import { getModelById } from '../lib/models';
 
 interface GenerationParams {
   parameters: Record<string, unknown>;
@@ -59,6 +62,50 @@ export const useGenerationHandler = () => {
         }).unwrap();
 
         dispatch(setResult({ modelId: selectedModelId, result: data }));
+
+        // Add to history if succeeded
+        if (data.status === 'succeeded' && data.output) {
+          try {
+            const model = getModelById(selectedModelId);
+            const isVideo = model?.category === 'image-to-video';
+
+            // Get first image URL for conversion
+            const imageUrl = Array.isArray(data.output) ? data.output[0] : data.output;
+
+            // Convert to base64 only for images (not videos)
+            let imageBase64: string | undefined;
+            if (!isVideo && imageUrl) {
+              try {
+                imageBase64 = await imageUrlToBase64(imageUrl);
+              } catch (conversionError) {
+                console.warn('Failed to convert image to base64:', conversionError);
+                // Continue without base64, will use URL fallback
+              }
+            }
+
+            // Generate unique ID - use Replicate ID if valid, otherwise create UUID-like ID
+            const uniqueId =
+              data.id && data.id !== 'sdk-generated'
+                ? data.id
+                : `gen-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+            dispatch(
+              addHistoryItem({
+                id: uniqueId,
+                timestamp: Date.now(),
+                modelId: selectedModelId,
+                modelName: model?.name || 'Unknown Model',
+                parameters: finalParams,
+                result: data,
+                imageBase64,
+                isVideo,
+              })
+            );
+          } catch (historyError) {
+            console.error('Failed to add to history:', historyError);
+            // Don't fail the whole generation if history fails
+          }
+        }
 
         showSuccess('Генерация завершена успешно!');
 

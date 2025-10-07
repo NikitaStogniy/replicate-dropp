@@ -4,6 +4,7 @@ import { replicateApi } from './services/replicateApi';
 import generatorReducer from './slices/generatorSlice';
 import uiReducer from './slices/uiSlice';
 import modelsReducer from './slices/modelsSlice';
+import historyReducer from './slices/historySlice';
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     generator: generatorReducer,
     ui: uiReducer,
     models: modelsReducer,
+    history: historyReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(replicateApi.middleware),
