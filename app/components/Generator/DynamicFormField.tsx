@@ -5,6 +5,7 @@ import type { ParameterSchema } from '@/app/lib/models/types';
 import type { ImageValue } from '@/app/utils/fileConversion';
 import PromptInput from './PromptInput';
 import ImageUploader from './ImageUploader';
+import MultiImageUploader from './MultiImageUploader';
 import StyleSelector from './StyleSelector';
 import AspectRatioSelector from './AspectRatioSelector';
 import SeedInput from './SeedInput';
@@ -15,8 +16,8 @@ import PromptOptimizerToggle from './PromptOptimizerToggle';
 interface DynamicFormFieldProps {
   paramName: string;
   schema: ParameterSchema;
-  value: string | number | boolean | ImageValue | null | undefined;
-  onChange: (value: string | number | boolean | ImageValue | null) => void;
+  value: string | number | boolean | ImageValue | ImageValue[] | null | undefined;
+  onChange: (value: string | number | boolean | ImageValue | ImageValue[] | null) => void;
   required?: boolean;
 }
 
@@ -46,6 +47,15 @@ function DynamicFormFieldComponent({
           label={schema.title}
           file={typeof value === 'object' && value !== null && 'dataUrl' in value ? value : null}
           required={required}
+          onChange={onChange}
+        />
+      );
+
+    case 'multi-image-upload':
+      return (
+        <MultiImageUploader
+          label={schema.title}
+          files={Array.isArray(value) ? value : []}
           onChange={onChange}
         />
       );
@@ -208,6 +218,11 @@ function DynamicFormFieldComponent({
 
 // Infer component type from schema when x-component is not specified
 function inferComponentType(schema: ParameterSchema): string {
+  // Check for array of images (multi-image-upload)
+  if (schema.type === 'array' && schema.items?.format === 'uri') {
+    return 'multi-image-upload';
+  }
+  // Check for single image (image-upload)
   if (schema.format === 'uri') return 'image-upload';
   if (schema.type === 'boolean') return 'toggle';
   if (schema.type === 'integer' || schema.type === 'number') {

@@ -34,7 +34,7 @@ export default function DynamicGeneratorForm({
 
   // Memoize parameter change handler
   const handleParameterChange = useCallback(
-    (paramName: string, value: string | number | boolean | ImageValue | null) => {
+    (paramName: string, value: string | number | boolean | ImageValue | ImageValue[] | null) => {
       if (!currentModel) return;
 
       const schema = currentModel.schema.properties[paramName];
@@ -68,7 +68,7 @@ export default function DynamicGeneratorForm({
     }
 
     const uiField = schema['x-ui-field'] || paramName;
-    const value = parameters[uiField] as string | number | boolean | ImageValue | null | undefined;
+    const value = parameters[uiField] as string | number | boolean | ImageValue | ImageValue[] | null | undefined;
     const isRequired = currentModel.schema.required.includes(paramName);
 
     return (

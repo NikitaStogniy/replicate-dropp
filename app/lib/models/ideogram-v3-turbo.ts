@@ -90,7 +90,9 @@ export const ideogramV3Turbo: ModelConfig = {
         format: 'uri',
         'x-order': 5,
         'x-component': 'image-upload',
-        'x-grid-column': 1
+        'x-grid-column': 1,
+        'x-ui-field': 'mask',
+        'x-api-field': 'mask'
       },
       seed: {
         type: 'integer',
