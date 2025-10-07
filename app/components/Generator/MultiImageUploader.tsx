@@ -4,6 +4,7 @@ import { useId } from 'react';
 import Image from 'next/image';
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { ImageInputItem } from '../../store/slices/generatorSlice';
+import { fileToImageValue } from '@/app/utils/fileConversion';
 
 interface MultiImageUploaderProps {
   label: string;
@@ -20,27 +21,22 @@ export default function MultiImageUploader({ label, files, onChange }: MultiImag
       const imageInputItems: ImageInputItem[] = [];
 
       for (const file of newFiles) {
-        const dataUrl = await fileToDataUrl(file);
-        imageInputItems.push({
-          dataUrl,
-          name: file.name,
-          type: file.type,
-        });
+        try {
+          const imageValue = await fileToImageValue(file);
+          imageInputItems.push({
+            dataUrl: imageValue.dataUrl,
+            name: imageValue.name,
+            type: imageValue.type,
+          });
+        } catch (error) {
+          console.error('Failed to process file:', file.name, error);
+        }
       }
 
       onChange([...files, ...imageInputItems]);
       // Reset input to allow re-uploading the same files
       e.target.value = '';
     }
-  };
-
-  const fileToDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
   };
 
   const removeFile = (index: number) => {
