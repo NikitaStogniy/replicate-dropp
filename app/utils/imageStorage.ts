@@ -3,9 +3,9 @@
  */
 
 const MAX_STORAGE_SIZE = 4.5 * 1024 * 1024; // 4.5MB to leave room for other data
-const MAX_THUMBNAIL_WIDTH = 200;
-const MAX_THUMBNAIL_HEIGHT = 200;
-const JPEG_QUALITY = 0.7;
+const MAX_THUMBNAIL_WIDTH = 120; // Уменьшено для экономии localStorage
+const MAX_THUMBNAIL_HEIGHT = 120; // Уменьшено для экономии localStorage
+const JPEG_QUALITY = 0.6; // Только для thumbnail в истории, не влияет на скачивание
 
 /**
  * Convert image URL to base64 string

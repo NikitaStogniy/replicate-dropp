@@ -20,7 +20,7 @@ interface HistoryState {
   isOpen: boolean;
 }
 
-const MAX_HISTORY_ITEMS = 20;
+const MAX_HISTORY_ITEMS = 10; // Уменьшено с 20 для экономии localStorage
 const STORAGE_KEY = 'generation-history';
 
 // Load from localStorage
@@ -47,13 +47,36 @@ const saveHistoryToStorage = (items: HistoryItem[]): void => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   } catch (error) {
     console.error('Failed to save history to localStorage:', error);
-    // If storage is full, try removing oldest items
+    // If storage is full, try progressively reducing items
     if (error instanceof Error && error.name === 'QuotaExceededError') {
-      const reducedItems = items.slice(-Math.floor(MAX_HISTORY_ITEMS / 2));
+      console.warn('localStorage quota exceeded, reducing history...');
+
+      // Попытка 1: оставить только последние 5 элементов
+      let reducedItems = items.slice(0, 5);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(reducedItems));
+        console.log('History reduced to 5 items');
+        return;
       } catch (retryError) {
-        console.error('Failed to save even after reducing items:', retryError);
+        console.warn('Still too large with 5 items, trying 3...');
+      }
+
+      // Попытка 2: оставить только последние 3 элемента
+      reducedItems = items.slice(0, 3);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(reducedItems));
+        console.log('History reduced to 3 items');
+        return;
+      } catch (retryError2) {
+        console.warn('Still too large with 3 items, clearing history...');
+      }
+
+      // Попытка 3: очистить всю историю
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+        console.log('History cleared completely');
+      } catch (finalError) {
+        console.error('Failed to clear history, localStorage may be corrupted:', finalError);
       }
     }
   }

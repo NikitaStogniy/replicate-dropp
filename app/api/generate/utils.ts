@@ -159,7 +159,36 @@ async function streamToBase64(stream: ReadableStream): Promise<string> {
   }
 
   const base64 = Buffer.from(buffer).toString('base64');
-  return `data:image/png;base64,${base64}`;
+
+  // Определяем MIME тип по магическим байтам
+  const mimeType = detectImageMimeType(buffer);
+
+  return `data:${mimeType};base64,${base64}`;
+}
+
+/**
+ * Определяет MIME тип изображения по магическим байтам
+ */
+function detectImageMimeType(buffer: Uint8Array): string {
+  // JPEG: FF D8 FF
+  if (buffer.length >= 3 && buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) {
+    return 'image/jpeg';
+  }
+
+  // PNG: 89 50 4E 47
+  if (buffer.length >= 4 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+    return 'image/png';
+  }
+
+  // WebP: 52 49 46 46 ... 57 45 42 50
+  if (buffer.length >= 12 &&
+      buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+      buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) {
+    return 'image/webp';
+  }
+
+  // По умолчанию PNG (для обратной совместимости)
+  return 'image/png';
 }
 
 /**
