@@ -65,7 +65,6 @@ export async function POST(request: NextRequest) {
     console.log("Category:", selectedModel.category);
     console.log("Output type:", typeof output);
     console.log("Output:", output);
-    console.log("Output is URL:", output.url().href instanceof URL);
     console.log("=== END ===");
 
     // Process output to consistent format
