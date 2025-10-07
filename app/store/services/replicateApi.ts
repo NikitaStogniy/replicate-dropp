@@ -8,6 +8,7 @@ export interface GenerationResult {
   output?: string | string[];
   error?: string;
   seed?: number;
+  parameters?: Record<string, unknown>;
 }
 
 export interface GenerateImageRequest {

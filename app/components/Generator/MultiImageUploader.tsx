@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import Image from 'next/image';
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { ImageInputItem } from '../../store/slices/generatorSlice';
@@ -11,8 +12,10 @@ interface MultiImageUploaderProps {
 }
 
 export default function MultiImageUploader({ label, files, onChange }: MultiImageUploaderProps) {
+  const inputId = useId();
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
+    if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
       const imageInputItems: ImageInputItem[] = [];
 
@@ -26,6 +29,8 @@ export default function MultiImageUploader({ label, files, onChange }: MultiImag
       }
 
       onChange([...files, ...imageInputItems]);
+      // Reset input to allow re-uploading the same files
+      e.target.value = '';
     }
   };
 
@@ -56,11 +61,11 @@ export default function MultiImageUploader({ label, files, onChange }: MultiImag
           accept="image/*"
           onChange={handleFileChange}
           multiple
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          id="multi-image-upload"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+          id={inputId}
         />
         <label
-          htmlFor="multi-image-upload"
+          htmlFor={inputId}
           className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors border-gray-300 bg-white/70 hover:border-blue-400 hover:bg-blue-50"
         >
           <PhotoIcon className="w-8 h-8 mb-2 text-gray-400" />

@@ -7,9 +7,20 @@ interface ResultsGridProps {
   output: string | string[];
   onEdit?: (imageUrl: string) => void;
   onDownload?: (imageUrl: string, filename: string) => void;
+  parameters?: Record<string, unknown>;
 }
 
-export default function ResultsGrid({ output, onEdit, onDownload }: ResultsGridProps) {
+export default function ResultsGrid({ output, onEdit, onDownload, parameters }: ResultsGridProps) {
+  // Определяем расширение файла на основе output_format
+  const getFileExtension = () => {
+    const format = parameters?.output_format || parameters?.format;
+    if (typeof format === 'string') {
+      return format.toLowerCase() === 'jpg' ? 'jpg' : 'png';
+    }
+    return 'png';
+  };
+
+  const extension = getFileExtension();
   // Массив изображений
   if (Array.isArray(output)) {
     const validImages = output.filter(
@@ -37,7 +48,7 @@ export default function ResultsGrid({ output, onEdit, onDownload }: ResultsGridP
             alt={`Сгенерированное изображение ${index + 1}`}
             onEdit={onEdit}
             onDownload={onDownload}
-            filename={`generated-image-${index + 1}.png`}
+            filename={`generated-image-${index + 1}.${extension}`}
           />
         ))}
       </div>
@@ -53,7 +64,7 @@ export default function ResultsGrid({ output, onEdit, onDownload }: ResultsGridP
           alt="Сгенерированное изображение"
           onEdit={onEdit}
           onDownload={onDownload}
-          filename="generated-image.png"
+          filename={`generated-image.${extension}`}
         />
       </div>
     );

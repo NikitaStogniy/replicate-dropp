@@ -61,7 +61,7 @@ export const useGenerationHandler = () => {
           parameters: finalParams,
         }).unwrap();
 
-        dispatch(setResult({ modelId: selectedModelId, result: data }));
+        dispatch(setResult({ modelId: selectedModelId, result: { ...data, parameters: finalParams } }));
 
         // Add to history if succeeded
         if (data.status === 'succeeded' && data.output) {

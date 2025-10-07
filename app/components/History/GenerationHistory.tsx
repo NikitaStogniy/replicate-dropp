@@ -131,16 +131,14 @@ export default function GenerationHistory() {
               <p className="text-center">
                 История генераций пуста
                 <br />
-                <span className="text-sm">
-                  Создайте первое изображение
-                </span>
+                <span className="text-sm">Создайте первое изображение</span>
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
               {items.map((item) => (
                 <HistoryItem
-                  key={item.id}
+                  key={`${item.id}-${item.timestamp}`}
                   item={item}
                   onSelect={handleSelectItem}
                   onDelete={handleDeleteItem}

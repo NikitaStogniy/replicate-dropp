@@ -50,6 +50,7 @@ export default function ResultsSection({
               output={result.output}
               onEdit={onEdit}
               onDownload={onDownload}
+              parameters={result.parameters}
             />
           )}
         </div>

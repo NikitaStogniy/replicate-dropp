@@ -261,12 +261,28 @@ function arePropsEqual(
     return false;
   }
 
-  // Deep compare value (handles primitives, ImageValue objects)
+  // Deep compare value (handles primitives, ImageValue objects, and arrays)
   if (typeof prevProps.value !== typeof nextProps.value) {
     return false;
   }
 
-  // For ImageValue objects, compare properties
+  // Handle arrays (for multi-image-upload)
+  if (Array.isArray(prevProps.value) && Array.isArray(nextProps.value)) {
+    if (prevProps.value.length !== nextProps.value.length) {
+      return false;
+    }
+    // Compare array contents
+    for (let i = 0; i < prevProps.value.length; i++) {
+      const prev = prevProps.value[i] as ImageValue;
+      const next = nextProps.value[i] as ImageValue;
+      if (prev.dataUrl !== next.dataUrl) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // For single ImageValue objects
   if (
     typeof prevProps.value === 'object' &&
     prevProps.value !== null &&
