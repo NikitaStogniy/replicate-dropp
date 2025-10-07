@@ -121,7 +121,7 @@ export default function Home() {
               inpaintingMode={uiState.inpaintingMode}
             />
 
-            <DynamicGeneratorForm currentModel={currentModel} />
+            <DynamicGeneratorForm currentModel={currentModel} onSubmit={onGenerate} />
 
             <GenerateButton
               isGenerating={isGenerating}

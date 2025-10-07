@@ -18,6 +18,7 @@ interface DynamicFormFieldProps {
   schema: ParameterSchema;
   value: string | number | boolean | ImageValue | ImageValue[] | null | undefined;
   onChange: (value: string | number | boolean | ImageValue | ImageValue[] | null) => void;
+  onSubmit?: () => void;
   required?: boolean;
 }
 
@@ -26,6 +27,7 @@ function DynamicFormFieldComponent({
   schema,
   value,
   onChange,
+  onSubmit,
   required = false,
 }: DynamicFormFieldProps) {
   // Determine component type
@@ -38,6 +40,7 @@ function DynamicFormFieldComponent({
         <PromptInput
           value={typeof value === 'string' ? value : ''}
           onChange={onChange}
+          onSubmit={onSubmit}
         />
       );
 
@@ -247,7 +250,8 @@ function arePropsEqual(
   // Compare primitive props
   if (
     prevProps.paramName !== nextProps.paramName ||
-    prevProps.required !== nextProps.required
+    prevProps.required !== nextProps.required ||
+    prevProps.onSubmit !== nextProps.onSubmit
   ) {
     return false;
   }

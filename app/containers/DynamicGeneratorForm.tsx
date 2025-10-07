@@ -10,10 +10,12 @@ import DynamicFormField from '../components/Generator/DynamicFormField';
 
 interface DynamicGeneratorFormProps {
   currentModel: ModelConfig | null | undefined;
+  onSubmit?: () => void;
 }
 
 export default function DynamicGeneratorForm({
   currentModel,
+  onSubmit,
 }: DynamicGeneratorFormProps) {
   const dispatch = useAppDispatch();
   const parameters = useAppSelector((state) => state.generator.parameters);
@@ -78,11 +80,12 @@ export default function DynamicGeneratorForm({
           schema={schema}
           value={value}
           onChange={(newValue) => handleParameterChange(paramName, newValue)}
+          onSubmit={onSubmit}
           required={isRequired}
         />
       </div>
     );
-  }, [currentModel, parameters, handleParameterChange]);
+  }, [currentModel, parameters, handleParameterChange, onSubmit]);
 
   // Early return after hooks
   if (!currentModel) {
