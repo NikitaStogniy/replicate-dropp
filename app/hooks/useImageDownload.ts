@@ -1,3 +1,5 @@
+import { showError, showSuccess } from '../utils/toast';
+
 export function useImageDownload() {
   const downloadImage = async (imageUrl: string, filename: string) => {
     try {
@@ -12,9 +14,11 @@ export function useImageDownload() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
+
+      showSuccess('Изображение успешно скачано');
     } catch (error) {
       console.error('Ошибка при скачивании изображения:', error);
-      alert('Ошибка при скачивании изображения');
+      showError('Ошибка при скачивании изображения');
     }
   };
 

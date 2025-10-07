@@ -75,6 +75,11 @@ export async function buildApiInput(
     }
   }
 
+  // Post-processing: Fix aspect_ratio if match_input_image is used without image_input
+  if (input.aspect_ratio === 'match_input_image' && !input.image_input) {
+    input.aspect_ratio = '1:1';
+  }
+
   return input;
 }
 

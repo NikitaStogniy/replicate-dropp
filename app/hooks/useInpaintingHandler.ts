@@ -3,6 +3,7 @@ import { useAppDispatch } from '../store';
 import { startInpainting, setSelectedModel } from '../store/slices';
 import { getAllModels, supportsInpainting } from '../lib/models';
 import type { ModelConfig } from '../lib/models/types';
+import { showInfo } from '../utils/toast';
 
 export const useInpaintingHandler = (currentModel: ModelConfig | null | undefined) => {
   const dispatch = useAppDispatch();
@@ -36,7 +37,7 @@ export const useInpaintingHandler = (currentModel: ModelConfig | null | undefine
           dispatch(setSelectedModel(selectedInpaintingModel.id));
 
           setTimeout(() => {
-            alert(
+            showInfo(
               `Переключено на модель "${selectedInpaintingModel.name}" для поддержки inpainting`
             );
           }, 100);

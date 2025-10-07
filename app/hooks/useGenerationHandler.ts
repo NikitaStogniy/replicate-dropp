@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useAppDispatch } from '../store';
 import { useGenerateImageMutation } from '../store/services/replicateApi';
 import { setResult } from '../store/slices/generatorSlice';
+import { showError, showSuccess } from '../utils/toast';
 
 interface GenerationParams {
   parameters: Record<string, unknown>;
@@ -59,6 +60,8 @@ export const useGenerationHandler = () => {
 
         dispatch(setResult({ modelId: selectedModelId, result: data }));
 
+        showSuccess('Генерация завершена успешно!');
+
         setTimeout(() => {
           const resultElement = document.querySelector('[data-result-section]');
           if (resultElement) {
@@ -67,13 +70,16 @@ export const useGenerationHandler = () => {
         }, 100);
       } catch (error) {
         console.error('Ошибка при генерации:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Произошла ошибка при генерации изображения';
+        showError(errorMessage);
+
         dispatch(
           setResult({
             modelId: selectedModelId,
             result: {
               id: '',
               status: 'failed',
-              error: 'Произошла ошибка при генерации изображения',
+              error: errorMessage,
             },
           })
         );

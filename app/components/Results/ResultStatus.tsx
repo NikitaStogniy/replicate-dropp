@@ -5,9 +5,10 @@ import { ClockIcon } from '@heroicons/react/24/outline';
 interface ResultStatusProps {
   status: 'processing' | 'failed' | 'starting';
   error?: string;
+  onRetry?: () => void;
 }
 
-export default function ResultStatus({ status, error }: ResultStatusProps) {
+export default function ResultStatus({ status, error, onRetry }: ResultStatusProps) {
   if (status === 'processing') {
     return (
       <div className="text-center py-12">
@@ -35,7 +36,15 @@ export default function ResultStatus({ status, error }: ResultStatusProps) {
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-red-800 mb-2">Ошибка генерации</h3>
-        <p className="text-red-700">{error || 'Неизвестная ошибка'}</p>
+        <p className="text-red-700 mb-4">{error || 'Неизвестная ошибка'}</p>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-2 rounded-lg transition-colors"
+          >
+            Попробовать снова
+          </button>
+        )}
       </div>
     );
   }

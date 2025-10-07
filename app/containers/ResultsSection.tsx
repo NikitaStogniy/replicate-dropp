@@ -12,6 +12,7 @@ interface ResultsSectionProps {
   currentModel: ModelConfig | null | undefined;
   onEdit: (imageUrl: string) => void;
   onDownload: (url: string, filename: string) => Promise<void>;
+  onRetry?: () => void;
 }
 
 export default function ResultsSection({
@@ -19,6 +20,7 @@ export default function ResultsSection({
   currentModel,
   onEdit,
   onDownload,
+  onRetry,
 }: ResultsSectionProps) {
   return (
     <div
@@ -59,6 +61,7 @@ export default function ResultsSection({
         <ResultStatus
           status={result.status as "processing" | "failed" | "starting"}
           error={result.error}
+          onRetry={onRetry}
         />
       )}
     </div>

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import AuthGuard from "./components/AuthGuard";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { getModelById, getAllModels, getDefaultParametersForModel } from "./lib/models";
 import { useAppDispatch, useAppSelector } from "./store";
 import { toggleModelSelector } from "./store/slices/uiSlice";
@@ -12,6 +13,7 @@ import { useImageDownload } from "./hooks/useImageDownload";
 import { useGenerationHandler } from "./hooks/useGenerationHandler";
 import { useInpaintingHandler } from "./hooks/useInpaintingHandler";
 import { validateGenerationParams } from "./services/validationService";
+import { showError } from "./utils/toast";
 
 // Components
 import ModelSelector from "./components/ModelSelector/ModelSelector";
@@ -67,7 +69,7 @@ export default function Home() {
     });
 
     if (validationError) {
-      alert(validationError);
+      showError(validationError);
       return;
     }
 
@@ -82,9 +84,10 @@ export default function Home() {
   };
 
   return (
-    <AuthGuard>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 py-8">
-        <div className="max-w-5xl mx-auto px-4">
+    <ErrorBoundary>
+      <AuthGuard>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 py-8">
+          <div className="max-w-5xl mx-auto px-4">
           {/* Header */}
           <div className="text-center mb-10">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
@@ -133,6 +136,7 @@ export default function Home() {
               currentModel={currentModel}
               onEdit={handleStartInpainting}
               onDownload={downloadImage}
+              onRetry={onGenerate}
             />
           )}
         </div>
@@ -143,8 +147,9 @@ export default function Home() {
           currentModel={currentModel}
           isGenerating={isGenerating}
           onGenerate={onGenerate}
-        />
-      </div>
-    </AuthGuard>
+          />
+        </div>
+      </AuthGuard>
+    </ErrorBoundary>
   );
 }

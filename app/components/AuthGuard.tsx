@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { showError } from '../utils/toast';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -36,12 +37,12 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         setIsAuthenticated(true);
         localStorage.setItem('authenticated', 'true');
       } else {
-        alert('Неверный секретный ключ');
+        showError('Неверный секретный ключ');
         setSecretKey('');
       }
     } catch (error) {
       console.error('Ошибка аутентификации:', error);
-      alert('Ошибка при проверке ключа');
+      showError('Ошибка при проверке ключа');
     }
   };
 

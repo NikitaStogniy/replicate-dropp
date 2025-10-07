@@ -1,6 +1,7 @@
 'use client';
 
 import { PhotoIcon } from '@heroicons/react/24/outline';
+import { showSuccess } from '@/app/utils/toast';
 
 interface ResultHeaderProps {
   title: string;
@@ -11,7 +12,7 @@ export default function ResultHeader({ title, seed }: ResultHeaderProps) {
   const handleSeedCopy = async () => {
     if (seed) {
       await navigator.clipboard.writeText(seed.toString());
-      alert('Seed скопирован в буфер обмена!');
+      showSuccess('Seed скопирован в буфер обмена!');
     }
   };
 
