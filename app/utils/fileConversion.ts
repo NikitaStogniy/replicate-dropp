@@ -168,7 +168,7 @@ export function imageValueToFile(imageValue: ImageValue): File {
  * Batch convert multiple Files to ImageValues
  */
 export async function filesToImageValues(files: File[]): Promise<ImageValue[]> {
-  return Promise.all(files.map(fileToImageValue));
+  return Promise.all(files.map((file) => fileToImageValue(file)));
 }
 
 /**
