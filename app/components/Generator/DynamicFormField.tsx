@@ -12,6 +12,7 @@ import SeedInput from './SeedInput';
 import DurationSelector from './DurationSelector';
 import ResolutionSelector from './ResolutionSelector';
 import PromptOptimizerToggle from './PromptOptimizerToggle';
+import Toggle from './Toggle';
 
 interface DynamicFormFieldProps {
   paramName: string;
@@ -163,8 +164,21 @@ function DynamicFormFieldComponent({
 
     case 'toggle':
       if (schema.type === 'boolean') {
+        // Check if it's the prompt optimizer (special case)
+        if (paramName === 'prompt_optimizer') {
+          return (
+            <PromptOptimizerToggle
+              enabled={typeof value === 'boolean' ? value : (schema.default as boolean || false)}
+              onChange={onChange}
+            />
+          );
+        }
+
+        // Generic toggle for other boolean parameters
         return (
-          <PromptOptimizerToggle
+          <Toggle
+            label={schema.title}
+            description={schema.description}
             enabled={typeof value === 'boolean' ? value : (schema.default as boolean || false)}
             onChange={onChange}
           />

@@ -48,26 +48,26 @@ export default function GenerateButton({
   const helpText = getHelpText();
 
   return (
-    <div className="mt-8 pt-6 border-t border-gray-200">
+    <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
       <button
         onClick={onGenerate}
         disabled={isDisabled}
-        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none flex items-center justify-center space-x-3"
+        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl font-semibold text-base sm:text-lg hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none flex items-center justify-center space-x-2 sm:space-x-3"
       >
         {isGenerating ? (
           <>
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             <span>Генерируется...</span>
           </>
         ) : (
           <>
-            <SparklesIcon className="w-5 h-5" />
+            <SparklesIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>Создать изображение</span>
           </>
         )}
       </button>
 
-      {helpText && <p className="text-center text-sm text-gray-500 mt-3">{helpText}</p>}
+      {helpText && <p className="text-center text-xs sm:text-sm text-gray-500 mt-2 sm:mt-3 px-2">{helpText}</p>}
     </div>
   );
 }

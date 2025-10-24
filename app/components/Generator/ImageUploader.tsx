@@ -34,13 +34,13 @@ export default function ImageUploader({ label, file, required = false, onChange 
 
   return (
     <div>
-      <label className="block text-lg font-semibold text-gray-800 mb-3">
+      <label className="block text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
 
       {file ? (
         <div className="relative group">
-          <div className="relative w-full h-48 rounded-xl overflow-hidden border-2 border-green-400">
+          <div className="relative w-full h-40 sm:h-48 rounded-xl overflow-hidden border-2 border-green-400">
             <Image
               src={file.dataUrl}
               alt={file.name}
@@ -51,11 +51,11 @@ export default function ImageUploader({ label, file, required = false, onChange 
           <button
             onClick={handleRemove}
             type="button"
-            className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute top-2 right-2 p-1.5 sm:p-2 bg-red-500 text-white rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
           >
-            <XMarkIcon className="w-5 h-5" />
+            <XMarkIcon className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
-          <p className="text-sm text-green-700 mt-2 font-medium">Загружено: {file.name}</p>
+          <p className="text-xs sm:text-sm text-green-700 mt-2 font-medium truncate">Загружено: {file.name}</p>
         </div>
       ) : (
         <div className="relative">
@@ -68,12 +68,12 @@ export default function ImageUploader({ label, file, required = false, onChange 
           />
           <label
             htmlFor={inputId}
-            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors border-gray-300 bg-white/70 hover:border-blue-400 hover:bg-blue-50"
+            className="flex flex-col items-center justify-center w-full h-28 sm:h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors border-gray-300 bg-white/70 hover:border-blue-400 hover:bg-blue-50"
           >
-            <PhotoIcon className="w-8 h-8 mb-2 text-gray-400" />
-            <div className="text-center">
-              <span className="text-sm font-medium text-gray-700">Загрузить изображение</span>
-              <p className="text-xs text-gray-500 mt-1">PNG, JPG до 10MB</p>
+            <PhotoIcon className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-gray-400" />
+            <div className="text-center px-2">
+              <span className="text-xs sm:text-sm font-medium text-gray-700">Загрузить изображение</span>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">PNG, JPG до 10MB</p>
             </div>
           </label>
         </div>

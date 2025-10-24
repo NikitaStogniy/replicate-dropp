@@ -97,14 +97,14 @@ export default function DynamicGeneratorForm({
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
       {/* Left Column */}
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-5 md:space-y-6">
         {leftColumnParams.map(renderParameter)}
       </div>
 
       {/* Right Column */}
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-5 md:space-y-6">
         {rightColumnParams.map(renderParameter)}
       </div>
     </div>

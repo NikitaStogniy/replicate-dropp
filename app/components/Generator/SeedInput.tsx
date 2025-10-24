@@ -17,7 +17,7 @@ export default function SeedInput({
         value={seed}
         onChange={(e) => onSeedChange(e.target.value.replace(/\D/g, ''))}
         placeholder="Оставьте пустым для случайного seed"
-        className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white/70 backdrop-blur-sm placeholder-gray-500"
+        className="w-full p-2.5 sm:p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base text-gray-900 bg-white/70 backdrop-blur-sm placeholder-gray-500"
       />
       <p className="text-xs text-gray-500 mt-1">Используйте тот же seed для воспроизведения результата</p>
     </div>

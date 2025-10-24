@@ -18,21 +18,21 @@ export default function AspectRatioSelector({ ratios, selected, onChange }: Aspe
   return (
     <div>
       <label className="block text-lg font-semibold text-gray-800 mb-3">Соотношение сторон</label>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
         {ratios.map((ratio) => (
           <button
             key={ratio}
             type="button"
             onClick={() => onChange(ratio)}
-            className={`p-3 rounded-xl border-2 text-sm font-medium transition-all duration-200 ${
+            className={`p-2.5 sm:p-3 rounded-xl border-2 text-sm font-medium transition-all duration-200 ${
               selected === ratio
                 ? 'border-blue-500 bg-blue-50 text-blue-700'
                 : 'border-gray-200 bg-white/70 text-gray-700 hover:border-gray-300'
             }`}
           >
             <div className="text-center">
-              <div className="font-semibold">{ratio}</div>
-              <div className="text-xs opacity-75">{ratioLabels[ratio] || ''}</div>
+              <div className="font-semibold text-xs sm:text-sm">{ratio}</div>
+              <div className="text-[10px] sm:text-xs opacity-75">{ratioLabels[ratio] || ''}</div>
             </div>
           </button>
         ))}

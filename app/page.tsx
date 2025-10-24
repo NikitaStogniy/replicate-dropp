@@ -90,24 +90,24 @@ export default function Home() {
         {/* Generation History */}
         <GenerationHistory />
 
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 py-8">
-          <div className="max-w-5xl mx-auto px-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 py-4 sm:py-8">
+          <div className="max-w-5xl mx-auto px-3 sm:px-4">
           {/* Header */}
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
-              <SparklesIcon className="w-8 h-8 text-white" />
+          <div className="text-center mb-6 sm:mb-10">
+            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-3 sm:mb-4 shadow-lg">
+              <SparklesIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-2 px-4">
               AI Image Generator
             </h1>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto px-4">
               Создавайте потрясающие изображения с помощью передовых AI моделей
             </p>
           </div>
 
           {/* Main Form */}
           <div
-            className={`bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mb-8 transition-all duration-300 ${
+            className={`bg-white/70 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-white/20 p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 transition-all duration-300 ${
               uiState.inpaintingMode ? "opacity-50 pointer-events-none" : ""
             }`}
           >
