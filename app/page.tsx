@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { SparklesIcon } from "@heroicons/react/24/outline";
-import AuthGuard from "./components/AuthGuard";
+import NewAuthGuard from "./components/NewAuthGuard";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { getModelById, getAllModels, getDefaultParametersForModel } from "./lib/models";
 import { useAppDispatch, useAppSelector } from "./store";
@@ -86,7 +86,7 @@ export default function Home() {
 
   return (
     <ErrorBoundary>
-      <AuthGuard>
+      <NewAuthGuard>
         {/* Generation History */}
         <GenerationHistory />
 
@@ -153,7 +153,7 @@ export default function Home() {
           onGenerate={onGenerate}
           />
         </div>
-      </AuthGuard>
+      </NewAuthGuard>
     </ErrorBoundary>
   );
 }

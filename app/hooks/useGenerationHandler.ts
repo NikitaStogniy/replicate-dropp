@@ -117,7 +117,21 @@ export const useGenerationHandler = () => {
         }, 100);
       } catch (error) {
         console.error('Ошибка при генерации:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Произошла ошибка при генерации изображения';
+
+        // Handle RTK Query error format
+        let errorMessage = 'Произошла ошибка при генерации изображения';
+
+        if (error && typeof error === 'object') {
+          // RTK Query error has 'data' property
+          if ('data' in error && error.data && typeof error.data === 'object' && 'error' in error.data) {
+            errorMessage = String(error.data.error);
+          } else if ('message' in error && typeof error.message === 'string') {
+            errorMessage = error.message;
+          } else if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+        }
+
         showError(errorMessage);
 
         dispatch(
