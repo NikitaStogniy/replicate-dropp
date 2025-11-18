@@ -90,7 +90,7 @@ export default function DynamicGeneratorForm({
   // Early return after hooks
   if (!currentModel) {
     return (
-      <div className="text-center text-gray-500 py-8">
+      <div className="text-center text-gray-400 py-8">
         Выберите модель для начала работы
       </div>
     );

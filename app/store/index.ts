@@ -5,6 +5,8 @@ import generatorReducer from './slices/generatorSlice';
 import uiReducer from './slices/uiSlice';
 import modelsReducer from './slices/modelsSlice';
 import historyReducer from './slices/historySlice';
+import chatReducer from './slices/chatSlice';
+import sessionsReducer from './slices/sessionsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +15,8 @@ export const store = configureStore({
     ui: uiReducer,
     models: modelsReducer,
     history: historyReducer,
+    chat: chatReducer,
+    sessions: sessionsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(replicateApi.middleware),
