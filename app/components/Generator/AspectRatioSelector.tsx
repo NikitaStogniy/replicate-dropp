@@ -17,7 +17,7 @@ const ratioLabels: Record<string, string> = {
 export default function AspectRatioSelector({ ratios, selected, onChange }: AspectRatioSelectorProps) {
   return (
     <div>
-      <label className="block text-lg font-semibold text-gray-800 mb-3">Соотношение сторон</label>
+      <label className="block text-lg font-semibold text-gray-200 mb-3">Соотношение сторон</label>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
         {ratios.map((ratio) => (
           <button
@@ -26,8 +26,8 @@ export default function AspectRatioSelector({ ratios, selected, onChange }: Aspe
             onClick={() => onChange(ratio)}
             className={`p-2.5 sm:p-3 rounded-xl border-2 text-sm font-medium transition-all duration-200 ${
               selected === ratio
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-200 bg-white/70 text-gray-700 hover:border-gray-300'
+                ? 'border-blue-500 bg-blue-900/30 text-blue-300'
+                : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600'
             }`}
           >
             <div className="text-center">

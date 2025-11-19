@@ -34,7 +34,7 @@ export default function ImageUploader({ label, file, required = false, onChange 
 
   return (
     <div>
-      <label className="block text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">
+      <label className="block text-base sm:text-lg font-semibold text-gray-200 mb-2 sm:mb-3">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
 
@@ -55,7 +55,7 @@ export default function ImageUploader({ label, file, required = false, onChange 
           >
             <XMarkIcon className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
-          <p className="text-xs sm:text-sm text-green-700 mt-2 font-medium truncate">Загружено: {file.name}</p>
+          <p className="text-xs sm:text-sm text-green-300 mt-2 font-medium truncate">Загружено: {file.name}</p>
         </div>
       ) : (
         <div className="relative">
@@ -68,12 +68,12 @@ export default function ImageUploader({ label, file, required = false, onChange 
           />
           <label
             htmlFor={inputId}
-            className="flex flex-col items-center justify-center w-full h-28 sm:h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors border-gray-300 bg-white/70 hover:border-blue-400 hover:bg-blue-50"
+            className="flex flex-col items-center justify-center w-full h-28 sm:h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors border-gray-700 bg-gray-800 hover:border-blue-400 hover:bg-gray-700"
           >
             <PhotoIcon className="w-6 h-6 sm:w-8 sm:h-8 mb-2 text-gray-400" />
             <div className="text-center px-2">
-              <span className="text-xs sm:text-sm font-medium text-gray-700">Загрузить изображение</span>
-              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">PNG, JPG до 10MB</p>
+              <span className="text-xs sm:text-sm font-medium text-gray-300">Загрузить изображение</span>
+              <p className="text-[10px] sm:text-xs text-gray-400 mt-1">PNG, JPG до 10MB</p>
             </div>
           </label>
         </div>

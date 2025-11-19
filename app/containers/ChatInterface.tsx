@@ -1,29 +1,33 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '../store';
-import { clearMessages, setCurrentPrompt } from '../store/slices/chatSlice';
-import { useChatGeneration } from '../hooks/useChatGeneration';
-import ChatTimeline from '../components/Chat/ChatTimeline';
-import ChatInput from '../components/Chat/ChatInput';
-import ModelSelectorInline from '../components/Chat/ModelSelectorInline';
-import AdvancedOptions from '../components/Chat/AdvancedOptions';
-import Sidebar from '../components/Chat/Sidebar';
+import { useEffect, useRef, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../store";
+import { clearMessages, setCurrentPrompt } from "../store/slices/chatSlice";
+import { useChatGeneration } from "../hooks/useChatGeneration";
+import ChatTimeline from "../components/Chat/ChatTimeline";
+import ChatInput from "../components/Chat/ChatInput";
+import ModelSelectorInline from "../components/Chat/ModelSelectorInline";
+import AdvancedOptions from "../components/Chat/AdvancedOptions";
+import Sidebar from "../components/Chat/Sidebar";
 import {
   loadSessions,
   updateSessionMessages,
   addUserMessage as addSessionUserMessage,
   addAssistantMessage as addSessionAssistantMessage,
-} from '../store/slices/sessionsSlice';
-import * as chatSliceActions from '../store/slices/chatSlice';
+} from "../store/slices/sessionsSlice";
+import * as chatSliceActions from "../store/slices/chatSlice";
 
 const ChatInterface = () => {
   const dispatch = useAppDispatch();
   const containerRef = useRef<HTMLDivElement>(null);
   const [timelineHeight, setTimelineHeight] = useState(600);
 
-  const { messages: chatMessages, isGenerating } = useAppSelector((state) => state.chat);
-  const { currentSessionId, sessions } = useAppSelector((state) => state.sessions);
+  const { messages: chatMessages, isGenerating } = useAppSelector(
+    (state) => state.chat
+  );
+  const { currentSessionId, sessions } = useAppSelector(
+    (state) => state.sessions
+  );
   const { handleSend } = useChatGeneration();
 
   // Load sessions on mount
@@ -39,7 +43,12 @@ const ChatInterface = () => {
   // Sync chat messages to current session
   useEffect(() => {
     if (currentSessionId && chatMessages.length >= 0) {
-      dispatch(updateSessionMessages({ sessionId: currentSessionId, messages: chatMessages }));
+      dispatch(
+        updateSessionMessages({
+          sessionId: currentSessionId,
+          messages: chatMessages,
+        })
+      );
     }
   }, [chatMessages, currentSessionId, dispatch]);
 
@@ -57,8 +66,8 @@ const ChatInterface = () => {
     };
 
     updateHeight();
-    window.addEventListener('resize', updateHeight);
-    return () => window.removeEventListener('resize', updateHeight);
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
   }, []);
 
   return (
@@ -68,14 +77,6 @@ const ChatInterface = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col relative">
-        {/* Header */}
-        <div className="flex-shrink-0 border-b border-gray-800 bg-[#0a0a0a] px-6 py-4">
-          <h1 className="text-2xl font-bold text-gray-100">AI Image Generator</h1>
-          <p className="text-sm text-gray-400 mt-1">
-            Chat with AI to create amazing images
-          </p>
-        </div>
-
         {/* Chat Timeline - constrained to available space */}
         <div className="flex-1 overflow-hidden">
           <ChatTimeline messages={sessionMessages} height={timelineHeight} />

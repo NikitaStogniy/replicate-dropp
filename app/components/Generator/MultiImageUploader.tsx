@@ -46,7 +46,7 @@ export default function MultiImageUploader({ label, files, onChange }: MultiImag
 
   return (
     <div>
-      <label className="block text-lg font-semibold text-gray-800 mb-3">
+      <label className="block text-lg font-semibold text-gray-200 mb-3">
         {label}
       </label>
 
@@ -62,14 +62,14 @@ export default function MultiImageUploader({ label, files, onChange }: MultiImag
         />
         <label
           htmlFor={inputId}
-          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors border-gray-300 bg-white/70 hover:border-blue-400 hover:bg-blue-50"
+          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors border-gray-700 bg-gray-800 hover:border-blue-400 hover:bg-gray-700"
         >
           <PhotoIcon className="w-8 h-8 mb-2 text-gray-400" />
           <div className="text-center">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-300">
               {files.length > 0 ? 'Добавить еще изображения' : 'Загрузить изображения'}
             </span>
-            <p className="text-xs text-gray-500 mt-1">PNG, JPG (можно выбрать несколько)</p>
+            <p className="text-xs text-gray-400 mt-1">PNG, JPG (можно выбрать несколько)</p>
           </div>
         </label>
       </div>
@@ -79,7 +79,7 @@ export default function MultiImageUploader({ label, files, onChange }: MultiImag
         <div className="grid grid-cols-2 gap-2">
           {files.map((file, index) => (
             <div key={index} className="relative group">
-              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-green-400">
+              <div className="aspect-square rounded-lg overflow-hidden bg-gray-700 border-2 border-green-400">
                 <Image
                   src={file.dataUrl}
                   alt={`Upload ${index + 1}`}
@@ -95,7 +95,7 @@ export default function MultiImageUploader({ label, files, onChange }: MultiImag
               >
                 <XMarkIcon className="w-4 h-4" />
               </button>
-              <p className="text-xs text-gray-600 mt-1 truncate">{file.name}</p>
+              <p className="text-xs text-gray-400 mt-1 truncate">{file.name}</p>
             </div>
           ))}
         </div>

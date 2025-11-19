@@ -24,12 +24,12 @@ const styleLabels: Record<string, string> = {
 export default function StyleSelector({ styles, selected, onChange }: StyleSelectorProps) {
   return (
     <div>
-      <label className="block text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">Стиль изображения</label>
+      <label className="block text-base sm:text-lg font-semibold text-gray-200 mb-2 sm:mb-3">Стиль изображения</label>
       <div className="relative">
         <select
           value={selected}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full p-3 sm:p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base text-gray-900 bg-white/70 backdrop-blur-sm appearance-none cursor-pointer"
+          className="w-full p-3 sm:p-4 border-2 border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base text-gray-100 bg-gray-800 appearance-none cursor-pointer"
         >
           {styles.map((style) => (
             <option key={style} value={style}>

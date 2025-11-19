@@ -9,12 +9,12 @@ interface ToggleProps {
 
 export default function Toggle({ label, description, enabled, onChange }: ToggleProps) {
   return (
-    <div className="bg-white/70 p-3 sm:p-4 rounded-xl border-2 border-gray-200">
+    <div className="bg-gray-800 p-3 sm:p-4 rounded-xl border-2 border-gray-700">
       <div className="flex items-center justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <label className="block text-base sm:text-lg font-semibold text-gray-800">{label}</label>
+          <label className="block text-base sm:text-lg font-semibold text-gray-200">{label}</label>
           {description && (
-            <p className="text-xs sm:text-sm text-gray-600 mt-1">
+            <p className="text-xs sm:text-sm text-gray-400 mt-1">
               {description}
             </p>
           )}
@@ -23,7 +23,7 @@ export default function Toggle({ label, description, enabled, onChange }: Toggle
           type="button"
           onClick={() => onChange(!enabled)}
           className={`relative inline-flex h-7 w-12 sm:h-8 sm:w-14 flex-shrink-0 items-center rounded-full transition-colors ${
-            enabled ? 'bg-blue-500' : 'bg-gray-300'
+            enabled ? 'bg-blue-500' : 'bg-gray-700'
           }`}
         >
           <span

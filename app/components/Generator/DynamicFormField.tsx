@@ -115,7 +115,7 @@ function DynamicFormFieldComponent({
         // Generic button group for other enum fields
         return (
           <div>
-            <label className="block text-lg font-semibold text-gray-800 mb-3">
+            <label className="block text-lg font-semibold text-gray-200 mb-3">
               {schema.title}
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -126,8 +126,8 @@ function DynamicFormFieldComponent({
                   onClick={() => onChange(option)}
                   className={`p-3 rounded-xl border-2 text-sm font-medium transition-all duration-200 ${
                     value === option || (!value && schema.default === option)
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 bg-white/70 text-gray-700 hover:border-gray-300'
+                      ? 'border-blue-500 bg-blue-900/30 text-blue-300'
+                      : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600'
                   }`}
                 >
                   {option}
@@ -143,13 +143,13 @@ function DynamicFormFieldComponent({
       if (schema.enum) {
         return (
           <div>
-            <label className="block text-lg font-semibold text-gray-800 mb-3">
+            <label className="block text-lg font-semibold text-gray-200 mb-3">
               {schema.title}
             </label>
             <select
               value={(value as string) || (schema.default as string) || ''}
               onChange={(e) => onChange(e.target.value)}
-              className="w-full p-3 rounded-xl border-2 border-gray-200 bg-white/70 text-gray-700 focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full p-3 rounded-xl border-2 border-gray-700 bg-gray-800 text-gray-100 focus:border-blue-500 focus:outline-none transition-colors"
             >
               {(schema.enum as (string | number)[]).map((option) => (
                 <option key={option} value={option}>
@@ -198,7 +198,7 @@ function DynamicFormFieldComponent({
 
       return (
         <div>
-          <label className="block text-lg font-semibold text-gray-800 mb-3">
+          <label className="block text-lg font-semibold text-gray-200 mb-3">
             {schema.title}
           </label>
           <input
@@ -207,7 +207,7 @@ function DynamicFormFieldComponent({
             onChange={(e) => onChange(e.target.value ? parseInt(e.target.value, 10) : null)}
             min={schema.minimum}
             max={schema.maximum}
-            className="w-full p-3 rounded-xl border-2 border-gray-200 bg-white/70 text-gray-700 focus:border-blue-500 focus:outline-none transition-colors"
+            className="w-full p-3 rounded-xl border-2 border-gray-700 bg-gray-800 text-gray-100 placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
             placeholder={schema.description}
           />
         </div>
@@ -216,14 +216,14 @@ function DynamicFormFieldComponent({
     case 'text-input':
       return (
         <div>
-          <label className="block text-lg font-semibold text-gray-800 mb-3">
+          <label className="block text-lg font-semibold text-gray-200 mb-3">
             {schema.title}
           </label>
           <input
             type="text"
             value={(value as string) || ''}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full p-3 rounded-xl border-2 border-gray-200 bg-white/70 text-gray-700 focus:border-blue-500 focus:outline-none transition-colors"
+            className="w-full p-3 rounded-xl border-2 border-gray-700 bg-gray-800 text-gray-100 placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
             placeholder={schema.description}
           />
         </div>

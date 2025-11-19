@@ -7,11 +7,11 @@ interface PromptOptimizerToggleProps {
 
 export default function PromptOptimizerToggle({ enabled, onChange }: PromptOptimizerToggleProps) {
   return (
-    <div className="bg-white/70 p-4 rounded-xl border-2 border-gray-200">
+    <div className="bg-gray-800 p-4 rounded-xl border-2 border-gray-700">
       <div className="flex items-center justify-between">
         <div>
-          <label className="text-lg font-semibold text-gray-800">Оптимизатор промпта</label>
-          <p className="text-sm text-gray-600 mt-1">
+          <label className="text-lg font-semibold text-gray-200">Оптимизатор промпта</label>
+          <p className="text-sm text-gray-400 mt-1">
             Автоматически улучшает промпт для лучших результатов
           </p>
         </div>
@@ -19,7 +19,7 @@ export default function PromptOptimizerToggle({ enabled, onChange }: PromptOptim
           type="button"
           onClick={() => onChange(!enabled)}
           className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-            enabled ? 'bg-blue-500' : 'bg-gray-300'
+            enabled ? 'bg-blue-500' : 'bg-gray-700'
           }`}
         >
           <span

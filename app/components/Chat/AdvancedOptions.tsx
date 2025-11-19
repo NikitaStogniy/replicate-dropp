@@ -3,9 +3,14 @@
 import { useState } from 'react';
 import { Settings, ChevronDown } from 'lucide-react';
 import DynamicGeneratorForm from '@/app/containers/DynamicGeneratorForm';
+import { useAppSelector } from '@/app/store';
+import { getModelById } from '@/app/lib/models';
 
 const AdvancedOptions = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const selectedModelId = useAppSelector((state) => state.models.selectedModelId);
+  const currentModel = getModelById(selectedModelId);
 
   return (
     <div className="border-t border-gray-800">
@@ -25,7 +30,7 @@ const AdvancedOptions = () => {
 
       {isExpanded && (
         <div className="px-4 py-3 bg-gray-900/50 border-t border-gray-800 max-h-96 overflow-y-auto">
-          <DynamicGeneratorForm />
+          <DynamicGeneratorForm currentModel={currentModel} />
         </div>
       )}
     </div>
