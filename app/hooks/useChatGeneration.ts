@@ -37,6 +37,8 @@ export const useChatGeneration = () => {
       return;
     }
 
+    let processingMessageId: string | null = null;
+
     try {
       dispatch(setGenerating(true));
 
@@ -98,7 +100,7 @@ export const useChatGeneration = () => {
       );
 
       // Add processing assistant message
-      const processingMessageId = `assistant-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      processingMessageId = `assistant-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       dispatch(
         addAssistantMessage({
           id: processingMessageId,
@@ -145,16 +147,30 @@ export const useChatGeneration = () => {
         }
       }
 
-      // Update processing message with error
-      dispatch(
-        updateAssistantMessage({
-          id: processingMessageId,
-          updates: {
-            status: 'failed',
-            error: errorMessage,
-          },
-        })
-      );
+      // Update processing message with error if it exists, otherwise add new error message
+      if (processingMessageId) {
+        dispatch(
+          updateAssistantMessage({
+            id: processingMessageId,
+            updates: {
+              status: 'failed',
+              error: errorMessage,
+            },
+          })
+        );
+      } else {
+        // Error happened before processing message was created
+        dispatch(
+          addAssistantMessage({
+            content: {
+              status: 'failed',
+              error: errorMessage,
+              modelId: selectedModelId,
+              modelName: getModelById(selectedModelId)?.name,
+            },
+          })
+        );
+      }
 
       showError(errorMessage);
     } finally {
