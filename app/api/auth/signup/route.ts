@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { query, queryOne } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { rateLimit, getClientIdentifier, RateLimits } from "@/lib/rate-limit";
 
 // Validation schema for signup
 const signupSchema = z.object({
@@ -20,6 +21,30 @@ const signupSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    // Apply rate limiting (5 requests per minute for auth endpoints)
+    const identifier = getClientIdentifier(req);
+    const { success, limit, remaining, reset } = rateLimit(identifier, RateLimits.AUTH);
+
+    if (!success) {
+      logger.warn(`Rate limit exceeded for signup from ${identifier}`);
+      return NextResponse.json(
+        {
+          error: "Too many signup attempts. Please try again later.",
+          limit,
+          remaining,
+          reset: new Date(reset).toISOString(),
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': limit.toString(),
+            'X-RateLimit-Remaining': remaining.toString(),
+            'X-RateLimit-Reset': reset.toString(),
+          },
+        }
+      );
+    }
+
     const body = await req.json();
 
     // Validate input with Zod

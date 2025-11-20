@@ -3,256 +3,283 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-
-interface User {
-  id: string;
-  name: string | null;
-  email: string;
-  role: string;
-  is_active: boolean;
-  usage_limit: number | null;
-  created_at: string;
-  generation_count: number;
-}
-
-interface InviteCode {
-  code: string;
-  type: string;
-  user_email: string | null;
-  used: boolean;
-  created_at: string;
-  expires_at: string | null;
-}
-
-interface UsageStats {
-  total_generations: number;
-  unique_users: number;
-  total_today: number;
-}
-
-interface Team {
-  id: number;
-  name: string;
-  created_at: string;
-}
+import {
+  useGetUsersQuery,
+  useGetInviteCodesQuery,
+  useGetUsageStatsQuery,
+  useGetTeamQuery,
+  useGetTeamLimitQuery,
+  useGetApiKeyQuery,
+  useUpdateUserMutation,
+  useDeleteUserMutation,
+  useUpdateApiKeyMutation,
+  useCreateInviteCodeMutation,
+  useUpdateTeamLimitMutation,
+} from "@/app/store/services/adminApi";
+import ConfirmModal from "@/app/components/Modals/ConfirmModal";
+import AlertModal from "@/app/components/Modals/AlertModal";
+import PromptModal from "@/app/components/Modals/PromptModal";
 
 export default function AdminDashboard() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [users, setUsers] = useState<User[]>([]);
-  const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
-  const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
-  const [team, setTeam] = useState<Team | null>(null);
-  const [teamLimit, setTeamLimit] = useState<number | null>(null);
-  const [apiKeyConfigured, setApiKeyConfigured] = useState(false);
-  const [maskedApiKey, setMaskedApiKey] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"users" | "invites" | "usage">("users");
-  const [loading, setLoading] = useState(true);
   const [newInviteExpiry, setNewInviteExpiry] = useState("7");
+
+  // Modal state
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    variant: 'success' | 'error' | 'info';
+  }>({ isOpen: false, title: '', message: '', variant: 'info' });
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    confirmVariant?: 'danger' | 'primary';
+  }>({ isOpen: false, title: '', message: '', onConfirm: () => {}, confirmVariant: 'primary' });
+
+  const [promptModal, setPromptModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    defaultValue: string;
+    onSubmit: (value: string) => void;
+    inputType?: 'text' | 'number';
+  }>({ isOpen: false, title: '', message: '', defaultValue: '', onSubmit: () => {}, inputType: 'text' });
+
+  // RTK Query hooks
+  const { data: usersData, isLoading: usersLoading } = useGetUsersQuery(undefined, {
+    skip: status !== "authenticated" || session?.user?.role !== "admin",
+  });
+  const { data: inviteCodesData, isLoading: inviteCodesLoading } = useGetInviteCodesQuery(undefined, {
+    skip: status !== "authenticated" || session?.user?.role !== "admin",
+  });
+  const { data: usageStatsData, isLoading: usageStatsLoading } = useGetUsageStatsQuery(undefined, {
+    skip: status !== "authenticated" || session?.user?.role !== "admin",
+  });
+  const { data: teamData, isLoading: teamLoading } = useGetTeamQuery(undefined, {
+    skip: status !== "authenticated" || session?.user?.role !== "admin",
+  });
+  const { data: teamLimitData, isLoading: teamLimitLoading } = useGetTeamLimitQuery(undefined, {
+    skip: status !== "authenticated" || session?.user?.role !== "admin",
+  });
+  const { data: apiKeyData, isLoading: apiKeyLoading } = useGetApiKeyQuery(undefined, {
+    skip: status !== "authenticated" || session?.user?.role !== "admin",
+  });
+
+  // Mutations
+  const [updateUser] = useUpdateUserMutation();
+  const [deleteUser] = useDeleteUserMutation();
+  const [updateApiKeyMutation] = useUpdateApiKeyMutation();
+  const [createInviteCode] = useCreateInviteCodeMutation();
+  const [updateTeamLimitMutation] = useUpdateTeamLimitMutation();
+
+  // Extract data with defaults
+  const users = usersData?.users || [];
+  const inviteCodes = inviteCodesData?.inviteCodes || [];
+  const usageStats = usageStatsData?.teamStats || null;
+  const team = teamData?.team || null;
+  const teamLimit = teamLimitData?.teamLimit || null;
+  const apiKeyConfigured = apiKeyData?.configured || false;
+  const maskedApiKey = apiKeyData?.maskedKey || null;
+
+  const loading =
+    usersLoading ||
+    inviteCodesLoading ||
+    usageStatsLoading ||
+    teamLoading ||
+    teamLimitLoading ||
+    apiKeyLoading;
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/signin");
-    } else if (status === "authenticated") {
-      if (session?.user?.role !== "admin") {
-        router.push("/");
-      } else {
-        loadData();
-      }
+    } else if (status === "authenticated" && session?.user?.role !== "admin") {
+      router.push("/");
     }
   }, [status, session, router]);
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      await Promise.all([loadUsers(), loadInviteCodes(), loadUsageStats(), loadTeam(), loadTeamLimit(), loadApiKey()]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleUpdateApiKey = () => {
+    setPromptModal({
+      isOpen: true,
+      title: 'Update API Key',
+      message: 'Enter Replicate API key (starts with r8_):\n\nGet your API key from: https://replicate.com/account/api-tokens',
+      defaultValue: '',
+      inputType: 'text',
+      onSubmit: async (newKey: string) => {
+        if (!newKey.trim()) {
+          setAlertModal({
+            isOpen: true,
+            title: 'Validation Error',
+            message: 'API key cannot be empty',
+            variant: 'error',
+          });
+          return;
+        }
 
-  const loadUsers = async () => {
-    const res = await fetch("/api/admin/users");
-    if (res.ok) {
-      const data = await res.json();
-      setUsers(data.users);
-    }
-  };
+        if (!newKey.startsWith('r8_')) {
+          setAlertModal({
+            isOpen: true,
+            title: 'Validation Error',
+            message: "Invalid API key format. Key should start with 'r8_'",
+            variant: 'error',
+          });
+          return;
+        }
 
-  const loadInviteCodes = async () => {
-    const res = await fetch("/api/admin/invite-codes");
-    if (res.ok) {
-      const data = await res.json();
-      setInviteCodes(data.inviteCodes);
-    }
-  };
-
-  const loadUsageStats = async () => {
-    const res = await fetch("/api/admin/usage");
-    if (res.ok) {
-      const data = await res.json();
-      setUsageStats(data.teamStats);
-    }
-  };
-
-  const loadTeam = async () => {
-    const res = await fetch("/api/admin/team");
-    if (res.ok) {
-      const data = await res.json();
-      setTeam(data.team);
-    }
-  };
-
-  const loadTeamLimit = async () => {
-    const res = await fetch("/api/admin/limits");
-    if (res.ok) {
-      const data = await res.json();
-      setTeamLimit(data.teamLimit);
-    }
-  };
-
-  const loadApiKey = async () => {
-    const res = await fetch("/api/admin/api-key");
-    if (res.ok) {
-      const data = await res.json();
-      setApiKeyConfigured(data.configured);
-      setMaskedApiKey(data.maskedKey);
-    }
-  };
-
-  const updateApiKey = async () => {
-    const newKey = prompt(
-      "Enter Replicate API key (starts with r8_):\n\nGet your API key from: https://replicate.com/account/api-tokens",
-      ""
-    );
-
-    if (newKey === null) return;
-
-    if (!newKey.trim()) {
-      alert("API key cannot be empty");
-      return;
-    }
-
-    if (!newKey.startsWith("r8_")) {
-      alert("Invalid API key format. Key should start with 'r8_'");
-      return;
-    }
-
-    const res = await fetch("/api/admin/api-key", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ apiKey: newKey }),
+        try {
+          await updateApiKeyMutation({ apiKey: newKey }).unwrap();
+          setAlertModal({
+            isOpen: true,
+            title: 'Success',
+            message: 'API key updated successfully!',
+            variant: 'success',
+          });
+        } catch (error: any) {
+          setAlertModal({
+            isOpen: true,
+            title: 'Error',
+            message: `Failed to update API key: ${error.data?.error || error.message}`,
+            variant: 'error',
+          });
+        }
+      },
     });
-
-    if (res.ok) {
-      alert("API key updated successfully!");
-      await loadApiKey();
-    } else {
-      const data = await res.json();
-      alert(`Failed to update API key: ${data.error}`);
-    }
   };
 
-  const createInviteCode = async () => {
-    const res = await fetch("/api/admin/invite-codes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  const handleCreateInviteCode = async () => {
+    try {
+      await createInviteCode({
         type: "invite",
         expiresInDays: parseInt(newInviteExpiry),
-      }),
-    });
-
-    if (res.ok) {
-      await loadInviteCodes();
+      }).unwrap();
+    } catch (error) {
+      setAlertModal({
+        isOpen: true,
+        title: 'Error',
+        message: 'Failed to create invite code',
+        variant: 'error',
+      });
     }
   };
 
-  const toggleUserActive = async (userId: string, currentStatus: boolean) => {
-    const res = await fetch("/api/admin/users", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  const handleToggleUserActive = async (userId: string, currentStatus: boolean) => {
+    try {
+      await updateUser({
         userId,
         isActive: !currentStatus,
-      }),
-    });
-
-    if (res.ok) {
-      await loadUsers();
+      }).unwrap();
+    } catch (error) {
+      setAlertModal({
+        isOpen: true,
+        title: 'Error',
+        message: 'Failed to update user status',
+        variant: 'error',
+      });
     }
   };
 
-  const deleteUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
-
-    const res = await fetch(`/api/admin/users?userId=${userId}`, {
-      method: "DELETE",
+  const handleDeleteUser = (userId: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete User',
+      message: 'Are you sure you want to delete this user? This action cannot be undone.',
+      confirmVariant: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteUser(userId).unwrap();
+        } catch (error) {
+          setAlertModal({
+            isOpen: true,
+            title: 'Error',
+            message: 'Failed to delete user',
+            variant: 'error',
+          });
+        }
+      },
     });
-
-    if (res.ok) {
-      await loadUsers();
-    }
   };
 
-  const updateTeamLimit = async () => {
-    const newLimit = prompt("Enter new team limit (or empty for unlimited):", teamLimit?.toString() || "");
-    if (newLimit === null) return;
-
-    const res = await fetch("/api/admin/limits", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        teamLimit: newLimit === "" ? null : parseInt(newLimit),
-      }),
+  const handleUpdateTeamLimit = () => {
+    setPromptModal({
+      isOpen: true,
+      title: 'Update Team Limit',
+      message: 'Enter new team limit (or empty for unlimited):',
+      defaultValue: teamLimit?.toString() || '',
+      inputType: 'number',
+      onSubmit: async (value: string) => {
+        try {
+          await updateTeamLimitMutation({
+            teamLimit: value === '' ? null : parseInt(value),
+          }).unwrap();
+        } catch (error) {
+          setAlertModal({
+            isOpen: true,
+            title: 'Error',
+            message: 'Failed to update team limit',
+            variant: 'error',
+          });
+        }
+      },
     });
-
-    if (res.ok) {
-      await loadTeamLimit();
-    }
   };
 
-  const updateUserLimit = async (userId: string, currentLimit: number | null) => {
-    const newLimit = prompt(
-      "Enter new user limit (or empty for unlimited):",
-      currentLimit?.toString() || ""
-    );
-    if (newLimit === null) return;
-
-    const res = await fetch("/api/admin/users", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId,
-        usageLimit: newLimit === "" ? null : parseInt(newLimit),
-      }),
+  const handleUpdateUserLimit = (userId: string, currentLimit: number | null) => {
+    setPromptModal({
+      isOpen: true,
+      title: 'Update User Limit',
+      message: 'Enter new user limit (or empty for unlimited):',
+      defaultValue: currentLimit?.toString() || '',
+      inputType: 'number',
+      onSubmit: async (value: string) => {
+        try {
+          await updateUser({
+            userId,
+            usageLimit: value === '' ? null : parseInt(value),
+          }).unwrap();
+        } catch (error) {
+          setAlertModal({
+            isOpen: true,
+            title: 'Error',
+            message: 'Failed to update user limit',
+            variant: 'error',
+          });
+        }
+      },
     });
-
-    if (res.ok) {
-      await loadUsers();
-    }
   };
 
-  const toggleUserRole = async (userId: string, currentRole: string) => {
+  const handleToggleUserRole = (userId: string, currentRole: string) => {
     const newRole = currentRole === "admin" ? "user" : "admin";
     const message = currentRole === "admin"
       ? "Are you sure you want to remove admin privileges from this user?"
       : "Are you sure you want to grant admin privileges to this user?";
 
-    if (!confirm(message)) return;
-
-    const res = await fetch("/api/admin/users", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId,
-        role: newRole,
-      }),
+    setConfirmModal({
+      isOpen: true,
+      title: 'Change User Role',
+      message,
+      confirmVariant: 'primary',
+      onConfirm: async () => {
+        try {
+          await updateUser({
+            userId,
+            role: newRole,
+          }).unwrap();
+        } catch (error) {
+          setAlertModal({
+            isOpen: true,
+            title: 'Error',
+            message: 'Failed to update user role',
+            variant: 'error',
+          });
+        }
+      },
     });
-
-    if (res.ok) {
-      await loadUsers();
-    }
   };
 
   if (status === "loading" || loading) {
@@ -315,7 +342,7 @@ export default function AdminDashboard() {
               </p>
             </div>
             <button
-              onClick={updateTeamLimit}
+              onClick={handleUpdateTeamLimit}
               className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
             >
               Update Limit
@@ -343,7 +370,7 @@ export default function AdminDashboard() {
               )}
             </div>
             <button
-              onClick={updateApiKey}
+              onClick={handleUpdateApiKey}
               className={`px-4 py-2 rounded ${
                 apiKeyConfigured
                   ? "bg-yellow-600 hover:bg-yellow-700"
@@ -432,7 +459,7 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4">{user.generation_count}</td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => updateUserLimit(user.id, user.usage_limit)}
+                        onClick={() => handleUpdateUserLimit(user.id, user.usage_limit)}
                         className="text-blue-400 hover:text-blue-300"
                       >
                         {user.usage_limit || "Unlimited"}
@@ -451,7 +478,7 @@ export default function AdminDashboard() {
                     </td>
                     <td className="px-6 py-4 space-x-2">
                       <button
-                        onClick={() => toggleUserActive(user.id, user.is_active)}
+                        onClick={() => handleToggleUserActive(user.id, user.is_active)}
                         className="text-yellow-400 hover:text-yellow-300 text-sm"
                       >
                         {user.is_active ? "Disable" : "Enable"}
@@ -459,13 +486,13 @@ export default function AdminDashboard() {
                       {user.id !== session.user.id && (
                         <>
                           <button
-                            onClick={() => toggleUserRole(user.id, user.role)}
+                            onClick={() => handleToggleUserRole(user.id, user.role)}
                             className="text-purple-400 hover:text-purple-300 text-sm"
                           >
                             {user.role === "admin" ? "Remove Admin" : "Make Admin"}
                           </button>
                           <button
-                            onClick={() => deleteUser(user.id)}
+                            onClick={() => handleDeleteUser(user.id)}
                             className="text-red-400 hover:text-red-300 text-sm"
                           >
                             Delete
@@ -496,7 +523,7 @@ export default function AdminDashboard() {
                   <option value="0">Never expires</option>
                 </select>
                 <button
-                  onClick={createInviteCode}
+                  onClick={handleCreateInviteCode}
                   className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
                 >
                   Generate Code
@@ -576,6 +603,34 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        title={alertModal.title}
+        message={alertModal.message}
+        variant={alertModal.variant}
+      />
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmVariant={confirmModal.confirmVariant}
+      />
+
+      <PromptModal
+        isOpen={promptModal.isOpen}
+        onClose={() => setPromptModal({ ...promptModal, isOpen: false })}
+        onSubmit={promptModal.onSubmit}
+        title={promptModal.title}
+        message={promptModal.message}
+        defaultValue={promptModal.defaultValue}
+        inputType={promptModal.inputType}
+      />
     </div>
   );
 }

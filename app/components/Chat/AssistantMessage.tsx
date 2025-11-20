@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import type { ChatMessage } from '@/app/store/slices/chatSlice';
 import { useAppDispatch } from '@/app/store';
 import { setAutoAttachedImage } from '@/app/store/slices/chatSlice';
@@ -11,7 +11,7 @@ interface AssistantMessageProps {
   message: ChatMessage;
 }
 
-const AssistantMessage = ({ message }: AssistantMessageProps) => {
+const AssistantMessage = memo(function AssistantMessage({ message }: AssistantMessageProps) {
   const dispatch = useAppDispatch();
   const { downloadImage } = useImageDownload();
   const { status, generatedImages, error, modelName, seed } = message.content;
@@ -131,6 +131,6 @@ const AssistantMessage = ({ message }: AssistantMessageProps) => {
       </div>
     </div>
   );
-};
+});
 
 export default AssistantMessage;

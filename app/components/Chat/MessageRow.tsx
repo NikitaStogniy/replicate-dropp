@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import type { ChatMessage } from '@/app/store/slices/chatSlice';
 import type { DynamicRowHeight } from 'react-window';
 import UserMessage from './UserMessage';
@@ -12,7 +12,7 @@ interface MessageRowProps {
   dynamicRowHeight: DynamicRowHeight;
 }
 
-const MessageRow = ({ index, messages, dynamicRowHeight }: MessageRowProps) => {
+const MessageRow = memo(function MessageRow({ index, messages, dynamicRowHeight }: MessageRowProps) {
   const rowRef = useRef<HTMLDivElement>(null);
   const message = messages[index];
 
@@ -38,6 +38,6 @@ const MessageRow = ({ index, messages, dynamicRowHeight }: MessageRowProps) => {
       )}
     </div>
   );
-};
+});
 
 export default MessageRow;

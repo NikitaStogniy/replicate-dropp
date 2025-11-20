@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { replicateApi } from './services/replicateApi';
+import { adminApi } from './services/adminApi';
 import generatorReducer from './slices/generatorSlice';
 import uiReducer from './slices/uiSlice';
 import modelsReducer from './slices/modelsSlice';
@@ -11,6 +12,7 @@ import sessionsReducer from './slices/sessionsSlice';
 export const store = configureStore({
   reducer: {
     [replicateApi.reducerPath]: replicateApi.reducer,
+    [adminApi.reducerPath]: adminApi.reducer,
     generator: generatorReducer,
     ui: uiReducer,
     models: modelsReducer,
@@ -19,7 +21,9 @@ export const store = configureStore({
     sessions: sessionsReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(replicateApi.middleware),
+    getDefaultMiddleware()
+      .concat(replicateApi.middleware)
+      .concat(adminApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -5,9 +5,34 @@ import { buildApiInput, processReplicateOutput, handleSeed } from "./utils";
 import { auth } from "@/lib/auth";
 import { query, queryOne } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { rateLimit, getClientIdentifier, RateLimits } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting (20 requests per minute for generation endpoints)
+    const identifier = getClientIdentifier(request);
+    const { success, limit, remaining, reset } = rateLimit(identifier, RateLimits.GENERATE);
+
+    if (!success) {
+      logger.warn(`Rate limit exceeded for generation from ${identifier}`);
+      return NextResponse.json(
+        {
+          error: "Too many generation requests. Please try again later.",
+          limit,
+          remaining,
+          reset: new Date(reset).toISOString(),
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': limit.toString(),
+            'X-RateLimit-Remaining': remaining.toString(),
+            'X-RateLimit-Reset': reset.toString(),
+          },
+        }
+      );
+    }
+
     // Check authentication
     const session = await auth();
 

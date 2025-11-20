@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import type { ChatMessage } from '@/app/store/slices/chatSlice';
 import { getImageDataUrl } from '@/app/store/slices/chatSlice';
 import { User } from 'lucide-react';
@@ -8,7 +9,7 @@ interface UserMessageProps {
   message: ChatMessage;
 }
 
-const UserMessage = ({ message }: UserMessageProps) => {
+const UserMessage = memo(function UserMessage({ message }: UserMessageProps) {
   const { prompt, imageAttachments, autoAttachedImage, modelName } = message.content;
 
   const formatTime = (timestamp: number) => {
@@ -79,6 +80,6 @@ const UserMessage = ({ message }: UserMessageProps) => {
       </div>
     </div>
   );
-};
+});
 
 export default UserMessage;
