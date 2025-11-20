@@ -70,7 +70,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { userId, isActive, usageLimit } = await req.json();
+    const { userId, isActive, usageLimit, role } = await req.json();
 
     if (!userId) {
       return NextResponse.json(
@@ -106,6 +106,19 @@ export async function PATCH(req: NextRequest) {
     if (usageLimit !== undefined) {
       updates.push(`usage_limit = $${paramCount}`);
       values.push(usageLimit === null ? null : parseInt(usageLimit));
+      paramCount++;
+    }
+
+    if (role !== undefined) {
+      // Validate role
+      if (!['admin', 'user'].includes(role)) {
+        return NextResponse.json(
+          { error: "Invalid role. Must be 'admin' or 'user'" },
+          { status: 400 }
+        );
+      }
+      updates.push(`role = $${paramCount}`);
+      values.push(role);
       paramCount++;
     }
 

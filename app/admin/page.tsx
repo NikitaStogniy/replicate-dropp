@@ -30,12 +30,19 @@ interface UsageStats {
   total_today: number;
 }
 
+interface Team {
+  id: number;
+  name: string;
+  created_at: string;
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [users, setUsers] = useState<User[]>([]);
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
+  const [team, setTeam] = useState<Team | null>(null);
   const [teamLimit, setTeamLimit] = useState<number | null>(null);
   const [apiKeyConfigured, setApiKeyConfigured] = useState(false);
   const [maskedApiKey, setMaskedApiKey] = useState<string | null>(null);
@@ -58,7 +65,7 @@ export default function AdminDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      await Promise.all([loadUsers(), loadInviteCodes(), loadUsageStats(), loadTeamLimit(), loadApiKey()]);
+      await Promise.all([loadUsers(), loadInviteCodes(), loadUsageStats(), loadTeam(), loadTeamLimit(), loadApiKey()]);
     } finally {
       setLoading(false);
     }
@@ -85,6 +92,14 @@ export default function AdminDashboard() {
     if (res.ok) {
       const data = await res.json();
       setUsageStats(data.teamStats);
+    }
+  };
+
+  const loadTeam = async () => {
+    const res = await fetch("/api/admin/team");
+    if (res.ok) {
+      const data = await res.json();
+      setTeam(data.team);
     }
   };
 
@@ -218,6 +233,28 @@ export default function AdminDashboard() {
     }
   };
 
+  const toggleUserRole = async (userId: string, currentRole: string) => {
+    const newRole = currentRole === "admin" ? "user" : "admin";
+    const message = currentRole === "admin"
+      ? "Are you sure you want to remove admin privileges from this user?"
+      : "Are you sure you want to grant admin privileges to this user?";
+
+    if (!confirm(message)) return;
+
+    const res = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        role: newRole,
+      }),
+    });
+
+    if (res.ok) {
+      await loadUsers();
+    }
+  };
+
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -234,7 +271,16 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-900 text-white p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <div>
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            {team && (
+              <div className="mt-2 text-sm text-gray-400">
+                <span className="font-medium">{team.name}</span>
+                <span className="mx-2">•</span>
+                <span className="font-mono">Team ID: {team.id}</span>
+              </div>
+            )}
+          </div>
           <button
             onClick={() => router.push("/")}
             className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
@@ -411,12 +457,20 @@ export default function AdminDashboard() {
                         {user.is_active ? "Disable" : "Enable"}
                       </button>
                       {user.id !== session.user.id && (
-                        <button
-                          onClick={() => deleteUser(user.id)}
-                          className="text-red-400 hover:text-red-300 text-sm"
-                        >
-                          Delete
-                        </button>
+                        <>
+                          <button
+                            onClick={() => toggleUserRole(user.id, user.role)}
+                            className="text-purple-400 hover:text-purple-300 text-sm"
+                          >
+                            {user.role === "admin" ? "Remove Admin" : "Make Admin"}
+                          </button>
+                          <button
+                            onClick={() => deleteUser(user.id)}
+                            className="text-red-400 hover:text-red-300 text-sm"
+                          >
+                            Delete
+                          </button>
+                        </>
                       )}
                     </td>
                   </tr>

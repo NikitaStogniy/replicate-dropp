@@ -7,6 +7,7 @@ import {
   updateAssistantMessage,
   clearCurrentInput,
   setGenerating,
+  setAutoAttachDisabled,
 } from '../store/slices/chatSlice';
 import { showError, showSuccess } from '../utils/toast';
 import { getModelById } from '../lib/models';
@@ -132,6 +133,9 @@ export const useChatGeneration = () => {
           },
         })
       );
+
+      // Reset auto-attach flag so new generation can be auto-attached
+      dispatch(setAutoAttachDisabled(false));
 
       showSuccess('Image generated successfully!');
     } catch (error) {

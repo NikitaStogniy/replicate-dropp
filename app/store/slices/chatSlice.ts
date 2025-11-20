@@ -72,6 +72,7 @@ interface ChatState {
     prompt: string;
     imageAttachments: ImageValue[];
     autoAttachedImage: ImageValue | null;
+    autoAttachDisabled: boolean;
   };
   isGenerating: boolean;
   maxMessages: number;
@@ -128,6 +129,7 @@ const initialState: ChatState = {
     prompt: '',
     imageAttachments: [],
     autoAttachedImage: null,
+    autoAttachDisabled: false,
   },
   isGenerating: false,
   maxMessages: MAX_CHAT_MESSAGES,
@@ -232,11 +234,16 @@ const chatSlice = createSlice({
       state.currentInput.autoAttachedImage = action.payload;
     },
 
+    setAutoAttachDisabled: (state, action: PayloadAction<boolean>) => {
+      state.currentInput.autoAttachDisabled = action.payload;
+    },
+
     clearCurrentInput: (state) => {
       state.currentInput = {
         prompt: '',
         imageAttachments: [],
         autoAttachedImage: null,
+        autoAttachDisabled: false,
       };
     },
 
@@ -259,6 +266,7 @@ export const {
   addImageAttachment,
   removeImageAttachment,
   setAutoAttachedImage,
+  setAutoAttachDisabled,
   clearCurrentInput,
   setGenerating,
 } = chatSlice.actions;

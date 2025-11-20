@@ -7,6 +7,7 @@ import {
   addImageAttachment,
   removeImageAttachment,
   setAutoAttachedImage,
+  setAutoAttachDisabled,
   urlToImageValue,
 } from '@/app/store/slices/chatSlice';
 import { getModelById } from '@/app/lib/models';
@@ -65,9 +66,10 @@ const ChatInput = ({ onSend, isGenerating }: ChatInputProps) => {
     if (
       supportsImage &&
       lastGeneratedImage &&
-      currentInput.prompt.length > 0
+      currentInput.prompt.length > 0 &&
+      !currentInput.autoAttachDisabled
     ) {
-      // User is typing AND there's a previous generation AND model supports images
+      // User is typing AND there's a previous generation AND model supports images AND user hasn't disabled auto-attach
       // Convert URL to ImageValue before dispatching
       urlToImageValue(lastGeneratedImage)
         .then((imageValue) => {
@@ -77,10 +79,13 @@ const ChatInput = ({ onSend, isGenerating }: ChatInputProps) => {
           console.error('Failed to convert auto-attached image:', error);
           dispatch(setAutoAttachedImage(null));
         });
+    } else if (currentInput.autoAttachDisabled) {
+      // Don't clear auto-attached image if user manually disabled it
+      // (keep it null as they removed it)
     } else {
       dispatch(setAutoAttachedImage(null));
     }
-  }, [currentInput.prompt, lastGeneratedImage, selectedModelId, dispatch]);
+  }, [currentInput.prompt, lastGeneratedImage, selectedModelId, currentInput.autoAttachDisabled, dispatch]);
 
   const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     dispatch(setCurrentPrompt(e.target.value));
@@ -134,6 +139,7 @@ const ChatInput = ({ onSend, isGenerating }: ChatInputProps) => {
 
   const handleRemoveAutoAttached = () => {
     dispatch(setAutoAttachedImage(null));
+    dispatch(setAutoAttachDisabled(true));
   };
 
   return (
