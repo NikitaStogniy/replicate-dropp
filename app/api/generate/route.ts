@@ -4,6 +4,7 @@ import { getModelById, isVideoModel } from "../../lib/models";
 import { buildApiInput, processReplicateOutput, handleSeed } from "./utils";
 import { auth } from "@/lib/auth";
 import { query, queryOne } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,13 +37,13 @@ export async function POST(request: NextRequest) {
     const modelId = formData.get("model_id") as string;
 
     if (!modelId) {
-      return NextResponse.json({ error: "Модель не выбрана" }, { status: 400 });
+      return NextResponse.json({ error: "Model not selected" }, { status: 400 });
     }
 
     const selectedModel = getModelById(modelId);
     if (!selectedModel) {
       return NextResponse.json(
-        { error: "Неизвестная модель" },
+        { error: "Unknown model" },
         { status: 400 }
       );
     }
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
     // Form model name for Replicate
     const modelName = `${selectedModel.owner}/${selectedModel.model}`;
 
-    console.log("Sending to Replicate:", {
+    logger.debug("Sending to Replicate:", {
       modelName,
       modelCategory: selectedModel.category,
       input: Object.keys(input).reduce((acc, key) => {
@@ -134,20 +135,20 @@ export async function POST(request: NextRequest) {
 
     const isVideo = isVideoModel(selectedModel);
 
-    console.log("=== REPLICATE OUTPUT ===");
-    console.log("Model:", selectedModel.name);
-    console.log("Category:", selectedModel.category);
-    console.log("Output type:", typeof output);
-    console.log("Output:", output);
-    console.log("=== END ===");
+    logger.debug("=== REPLICATE OUTPUT ===");
+    logger.debug("Model:", selectedModel.name);
+    logger.debug("Category:", selectedModel.category);
+    logger.debug("Output type:", typeof output);
+    logger.debug("Output:", output);
+    logger.debug("=== END ===");
 
     // Process output to consistent format
     const finalOutput = await processReplicateOutput(output, isVideo);
 
-    console.log("=== FINAL OUTPUT ===");
-    console.log("Final output type:", typeof finalOutput);
-    console.log("Final output:", finalOutput);
-    console.log("=== END ===");
+    logger.debug("=== FINAL OUTPUT ===");
+    logger.debug("Final output type:", typeof finalOutput);
+    logger.debug("Final output:", finalOutput);
+    logger.debug("=== END ===");
 
     // Handle seed
     const seedParam = formData.get("seed") as string;
@@ -179,7 +180,7 @@ export async function POST(request: NextRequest) {
         ]
       );
     } catch (dbError) {
-      console.error("Failed to log generation to database:", dbError);
+      logger.error("Failed to log generation to database:", dbError);
       // Don't fail the request if logging fails
     }
 
@@ -192,16 +193,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(responseData);
   } catch (error) {
-    console.error("Ошибка при генерации изображения:", error);
+    logger.error("Error generating image:", error);
 
-    let errorMessage = "Произошла неизвестная ошибка";
+    let errorMessage = "An unknown error occurred";
     if (error instanceof Error) {
       errorMessage = error.message;
     }
 
     return NextResponse.json(
       {
-        error: `Ошибка при генерации: ${errorMessage}`,
+        error: `Generation failed: ${errorMessage}`,
         status: "failed",
       },
       { status: 500 }

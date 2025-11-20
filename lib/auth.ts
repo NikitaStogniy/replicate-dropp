@@ -2,8 +2,22 @@ import NextAuth, { DefaultSession } from "next-auth";
 import NeonAdapter from "@auth/neon-adapter";
 import { Pool } from "@neondatabase/serverless";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { CredentialsSignin } from "next-auth";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
 import { query, queryOne } from "./db";
+
+// Custom error for invalid credentials
+class InvalidCredentialsError extends CredentialsSignin {
+  code = "invalid_credentials";
+  message = "Invalid email or password";
+}
+
+// Validation schema for sign-in
+const signInSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
 
 // Extend NextAuth session type
 declare module "next-auth" {
@@ -23,6 +37,16 @@ declare module "next-auth" {
   }
 }
 
+// Extend NextAuth JWT type
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    role: string;
+    teamId: string | null;
+    isActive: boolean;
+  }
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth(() => {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -36,9 +60,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
           password: { label: "Password", type: "password" },
         },
         async authorize(credentials) {
-          if (!credentials?.email || !credentials?.password) {
-            return null;
+          // Validate input with Zod
+          const parsedCredentials = signInSchema.safeParse(credentials);
+
+          if (!parsedCredentials.success) {
+            throw new InvalidCredentialsError();
           }
+
+          const { email, password } = parsedCredentials.data;
 
           // Find user by email
           const user = await queryOne<{
@@ -51,11 +80,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
             is_active: boolean;
           }>(
             'SELECT id, email, password_hash, name, role, team_id, is_active FROM users WHERE email = $1',
-            [credentials.email]
+            [email]
           );
 
           if (!user) {
-            return null;
+            throw new InvalidCredentialsError();
           }
 
           // Check if user is active
@@ -65,12 +94,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
 
           // Verify password
           const passwordMatch = await bcrypt.compare(
-            credentials.password as string,
+            password,
             user.password_hash
           );
 
           if (!passwordMatch) {
-            return null;
+            throw new InvalidCredentialsError();
           }
 
           return {

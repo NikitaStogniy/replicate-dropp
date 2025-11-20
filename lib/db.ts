@@ -1,21 +1,14 @@
 import { Pool } from '@neondatabase/serverless';
 
-// Database connection pool
-export function getPool() {
-  return new Pool({
-    connectionString: process.env.DATABASE_URL
-  });
-}
+// Reusable connection pool (do not recreate on every query)
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
 
 // Helper to execute queries
 export async function query<T = any>(text: string, params?: any[]): Promise<T[]> {
-  const pool = getPool();
-  try {
-    const result = await pool.query(text, params);
-    return result.rows as T[];
-  } finally {
-    await pool.end();
-  }
+  const result = await pool.query(text, params);
+  return result.rows as T[];
 }
 
 // Helper to execute a single query and return first row

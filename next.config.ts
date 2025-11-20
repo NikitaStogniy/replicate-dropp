@@ -5,8 +5,17 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'replicate.delivery',
       },
+      {
+        protocol: 'https',
+        hostname: 'replicate.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pbxt.replicate.delivery',
+      },
+      // Add more specific domains as needed
     ],
   },
 };

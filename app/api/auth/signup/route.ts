@@ -1,18 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
 import { query, queryOne } from "@/lib/db";
+import { logger } from "@/lib/logger";
+
+// Validation schema for signup
+const signupSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+  name: z.string().optional(),
+  inviteCode: z.string().min(1, "Invite code is required"),
+});
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, name, inviteCode } = await req.json();
+    const body = await req.json();
 
-    // Validate input
-    if (!email || !password || !inviteCode) {
+    // Validate input with Zod
+    const validation = signupSchema.safeParse(body);
+    if (!validation.success) {
+      const firstError = validation.error.issues[0];
       return NextResponse.json(
-        { error: "Email, password, and invite code are required" },
+        { error: firstError.message },
         { status: 400 }
       );
     }
+
+    const { email, password, name, inviteCode } = validation.data;
 
     // Validate invite code
     const invite = await queryOne<{
@@ -83,7 +103,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Signup error:", error);
+    logger.error("Signup error:", error);
     return NextResponse.json(
       { error: "Failed to create account" },
       { status: 500 }

@@ -63,10 +63,10 @@ class ErrorBoundary extends Component<Props, State> {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  Что-то пошло не так
+                  Something went wrong
                 </h1>
                 <p className="text-gray-600 mt-1">
-                  Произошла непредвиденная ошибка
+                  An unexpected error occurred
                 </p>
               </div>
             </div>
@@ -82,7 +82,7 @@ class ErrorBoundary extends Component<Props, State> {
             {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
               <details className="mb-6">
                 <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 mb-2">
-                  Stack Trace (только в development)
+                  Stack Trace (development only)
                 </summary>
                 <pre className="text-xs bg-gray-100 p-4 rounded-lg overflow-auto max-h-64 text-gray-800">
                   {this.state.errorInfo.componentStack}
@@ -95,18 +95,18 @@ class ErrorBoundary extends Component<Props, State> {
                 onClick={this.handleReset}
                 className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors font-medium"
               >
-                Попробовать снова
+                Try Again
               </button>
               <button
                 onClick={() => window.location.reload()}
                 className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-300 transition-colors font-medium"
               >
-                Перезагрузить страницу
+                Reload Page
               </button>
             </div>
 
             <p className="text-sm text-gray-500 text-center mt-6">
-              Если проблема повторяется, попробуйте очистить кэш браузера
+              If the problem persists, try clearing your browser cache
             </p>
           </div>
         </div>

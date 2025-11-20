@@ -19,6 +19,7 @@ export interface GenerateImageRequest {
 export const replicateApi = createApi({
   reducerPath: 'replicateApi',
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  tagTypes: ['Generation', 'User'], // Define cache tags
   endpoints: (builder) => ({
     generateImage: builder.mutation<GenerationResult, GenerateImageRequest>({
       query: ({ model_id, parameters }) => {
@@ -41,6 +42,8 @@ export const replicateApi = createApi({
           body: formData,
         };
       },
+      // Invalidate relevant caches after generation
+      invalidatesTags: ['Generation'],
     }),
   }),
 });
