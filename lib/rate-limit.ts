@@ -101,7 +101,7 @@ export function rateLimit(
  * @returns Client identifier string
  */
 export function getClientIdentifier(
-  request: Request | { headers: any; ip?: string }
+  request: Request | { headers: Headers | { get?: (name: string) => string | null }; ip?: string }
 ): string {
   // Try to get real IP from various headers
   const headers = request.headers;

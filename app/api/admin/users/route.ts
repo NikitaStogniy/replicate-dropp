@@ -94,7 +94,7 @@ export async function PATCH(req: NextRequest) {
 
     // Update user
     const updates: string[] = [];
-    const values: any[] = [];
+    const values: (string | number | boolean | null)[] = [];
     let paramCount = 1;
 
     if (typeof isActive === 'boolean') {

@@ -44,7 +44,7 @@ export const useChatGeneration = () => {
       dispatch(setGenerating(true));
 
       // Build final parameters with images
-      const finalParams = { ...parameters, prompt: currentInput.prompt };
+      const finalParams: Record<string, unknown> = { ...parameters, prompt: currentInput.prompt };
 
       // Handle image inputs based on model type
       if (supportsImageInput(model)) {
@@ -123,12 +123,15 @@ export const useChatGeneration = () => {
       }).unwrap();
 
       // Update message with result
+      const outputArray = Array.isArray(data.output) ? data.output : [data.output];
+      const filteredOutput = outputArray.filter((url): url is string => typeof url === 'string');
+
       dispatch(
         updateAssistantMessage({
           id: processingMessageId,
           updates: {
             status: 'succeeded',
-            generatedImages: Array.isArray(data.output) ? data.output : [data.output],
+            generatedImages: filteredOutput,
             seed: data.seed,
           },
         })
@@ -166,6 +169,7 @@ export const useChatGeneration = () => {
         // Error happened before processing message was created
         dispatch(
           addAssistantMessage({
+            id: `assistant-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
             content: {
               status: 'failed',
               error: errorMessage,

@@ -139,11 +139,14 @@ export default function AdminDashboard() {
             message: 'API key updated successfully!',
             variant: 'success',
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const errorMessage = error && typeof error === 'object' && 'data' in error
+            ? (error.data as { error?: string })?.error || 'Unknown error'
+            : error instanceof Error ? error.message : 'Unknown error';
           setAlertModal({
             isOpen: true,
             title: 'Error',
-            message: `Failed to update API key: ${error.data?.error || error.message}`,
+            message: `Failed to update API key: ${errorMessage}`,
             variant: 'error',
           });
         }
@@ -157,7 +160,7 @@ export default function AdminDashboard() {
         type: "invite",
         expiresInDays: parseInt(newInviteExpiry),
       }).unwrap();
-    } catch (error) {
+    } catch {
       setAlertModal({
         isOpen: true,
         title: 'Error',
@@ -173,7 +176,7 @@ export default function AdminDashboard() {
         userId,
         isActive: !currentStatus,
       }).unwrap();
-    } catch (error) {
+    } catch {
       setAlertModal({
         isOpen: true,
         title: 'Error',
@@ -192,7 +195,7 @@ export default function AdminDashboard() {
       onConfirm: async () => {
         try {
           await deleteUser(userId).unwrap();
-        } catch (error) {
+        } catch {
           setAlertModal({
             isOpen: true,
             title: 'Error',
@@ -216,7 +219,7 @@ export default function AdminDashboard() {
           await updateTeamLimitMutation({
             teamLimit: value === '' ? null : parseInt(value),
           }).unwrap();
-        } catch (error) {
+        } catch {
           setAlertModal({
             isOpen: true,
             title: 'Error',
@@ -241,7 +244,7 @@ export default function AdminDashboard() {
             userId,
             usageLimit: value === '' ? null : parseInt(value),
           }).unwrap();
-        } catch (error) {
+        } catch {
           setAlertModal({
             isOpen: true,
             title: 'Error',
@@ -270,7 +273,7 @@ export default function AdminDashboard() {
             userId,
             role: newRole,
           }).unwrap();
-        } catch (error) {
+        } catch {
           setAlertModal({
             isOpen: true,
             title: 'Error',

@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from 'react';
 import { List, useDynamicRowHeight, useListRef } from 'react-window';
 import type { ChatMessage } from '@/app/store/slices/chatSlice';
-import MessageRow from './MessageRow';
+import MessageRow, { type MessageRowCustomProps } from './MessageRow';
 
 interface ChatTimelineProps {
   messages: ChatMessage[];
@@ -11,7 +11,7 @@ interface ChatTimelineProps {
 }
 
 const ChatTimeline = ({ messages, height }: ChatTimelineProps) => {
-  const listRef = useListRef();
+  const listRef = useListRef(null);
   const dynamicRowHeight = useDynamicRowHeight({ defaultRowHeight: 150 });
 
   // Reset scroll position when messages are cleared
@@ -54,7 +54,7 @@ const ChatTimeline = ({ messages, height }: ChatTimelineProps) => {
   const listKey = messages.length === 0 ? 'empty' : 'has-messages';
 
   return (
-    <List
+    <List<MessageRowCustomProps>
       key={listKey}
       listRef={listRef}
       defaultHeight={height}

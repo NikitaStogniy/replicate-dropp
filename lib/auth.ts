@@ -37,10 +37,9 @@ declare module "next-auth" {
   }
 }
 
-// Extend NextAuth JWT type
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
+// Extend Auth.js adapter types
+declare module "@auth/core/adapters" {
+  interface AdapterUser {
     role: string;
     teamId: string | null;
     isActive: boolean;

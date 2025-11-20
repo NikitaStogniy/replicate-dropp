@@ -3,7 +3,7 @@
 import { useState, memo } from 'react';
 import type { ChatMessage } from '@/app/store/slices/chatSlice';
 import { useAppDispatch } from '@/app/store';
-import { setAutoAttachedImage } from '@/app/store/slices/chatSlice';
+import { setAutoAttachedImage, urlToImageValue } from '@/app/store/slices/chatSlice';
 import { Bot, Download, Loader2, AlertCircle, Image as ImageIcon, Copy } from 'lucide-react';
 import { useImageDownload } from '@/app/hooks/useImageDownload';
 
@@ -24,8 +24,13 @@ const AssistantMessage = memo(function AssistantMessage({ message }: AssistantMe
     });
   };
 
-  const handleUseAsInput = (imageUrl: string) => {
-    dispatch(setAutoAttachedImage(imageUrl));
+  const handleUseAsInput = async (imageUrl: string) => {
+    try {
+      const imageValue = await urlToImageValue(imageUrl);
+      dispatch(setAutoAttachedImage(imageValue));
+    } catch (error) {
+      console.error('Failed to convert image URL to ImageValue:', error);
+    }
   };
 
   const handleDownload = async (imageUrl: string, index: number) => {

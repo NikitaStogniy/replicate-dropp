@@ -183,10 +183,10 @@ export async function POST(request: NextRequest) {
     const prompt = formData.get("prompt") as string || "";
 
     // Collect all parameters for logging
-    const parameters: Record<string, any> = {};
+    const parameters: Record<string, string | number | boolean> = {};
     formData.forEach((value, key) => {
       if (key !== "model_id" && !key.includes("image")) {
-        parameters[key] = value;
+        parameters[key] = value as string;
       }
     });
 

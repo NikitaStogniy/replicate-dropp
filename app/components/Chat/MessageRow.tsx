@@ -1,18 +1,35 @@
 'use client';
 
-import { useEffect, useRef, memo } from 'react';
+import { useEffect, useRef, CSSProperties } from 'react';
 import type { ChatMessage } from '@/app/store/slices/chatSlice';
 import type { DynamicRowHeight } from 'react-window';
 import UserMessage from './UserMessage';
 import AssistantMessage from './AssistantMessage';
 
-interface MessageRowProps {
-  index: number;
+// Custom props that we pass through rowProps
+export interface MessageRowCustomProps {
   messages: ChatMessage[];
   dynamicRowHeight: DynamicRowHeight;
 }
 
-const MessageRow = memo(function MessageRow({ index, messages, dynamicRowHeight }: MessageRowProps) {
+// Full props interface including react-window's built-in props
+export interface MessageRowProps extends MessageRowCustomProps {
+  ariaAttributes: {
+    "aria-posinset": number;
+    "aria-setsize": number;
+    role: "listitem";
+  };
+  index: number;
+  style: CSSProperties;
+}
+
+function MessageRow({
+  ariaAttributes,
+  index,
+  style,
+  messages,
+  dynamicRowHeight
+}: MessageRowProps) {
   const rowRef = useRef<HTMLDivElement>(null);
   const message = messages[index];
 
@@ -26,7 +43,7 @@ const MessageRow = memo(function MessageRow({ index, messages, dynamicRowHeight 
   }, [dynamicRowHeight, message]);
 
   return (
-    <div ref={rowRef} className="px-4 py-2">
+    <div ref={rowRef} style={style} {...ariaAttributes} className="px-4 py-2">
       {message.type === 'user' && <UserMessage message={message} />}
       {message.type === 'assistant' && <AssistantMessage message={message} />}
       {message.type === 'system' && (
@@ -38,6 +55,6 @@ const MessageRow = memo(function MessageRow({ index, messages, dynamicRowHeight 
       )}
     </div>
   );
-});
+}
 
 export default MessageRow;
