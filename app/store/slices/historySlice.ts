@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { GenerationResult } from '../services/replicateApi';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import type { GenerationResult } from "../services/replicateApi";
 
 export interface HistoryItem {
   id: string;
@@ -21,11 +21,11 @@ interface HistoryState {
 }
 
 const MAX_HISTORY_ITEMS = 10; // Уменьшено с 20 для экономии localStorage
-const STORAGE_KEY = 'generation-history';
+const STORAGE_KEY = "generation-history";
 
 // Load from localStorage
 const loadHistoryFromStorage = (): HistoryItem[] => {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === "undefined") return [];
 
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -34,49 +34,52 @@ const loadHistoryFromStorage = (): HistoryItem[] => {
     const parsed = JSON.parse(stored);
     return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
-    console.error('Failed to load history from localStorage:', error);
+    console.error("Failed to load history from localStorage:", error);
     return [];
   }
 };
 
 // Save to localStorage
 const saveHistoryToStorage = (items: HistoryItem[]): void => {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   } catch (error) {
-    console.error('Failed to save history to localStorage:', error);
+    console.error("Failed to save history to localStorage:", error);
     // If storage is full, try progressively reducing items
-    if (error instanceof Error && error.name === 'QuotaExceededError') {
-      console.warn('localStorage quota exceeded, reducing history...');
+    if (error instanceof Error && error.name === "QuotaExceededError") {
+      console.warn("localStorage quota exceeded, reducing history...");
 
       // Попытка 1: оставить только последние 5 элементов
       let reducedItems = items.slice(0, 5);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(reducedItems));
-        console.log('History reduced to 5 items');
+        console.log("History reduced to 5 items");
         return;
       } catch (retryError) {
-        console.warn('Still too large with 5 items, trying 3...');
+        console.warn("Still too large with 5 items, trying 3...");
       }
 
       // Попытка 2: оставить только последние 3 элемента
       reducedItems = items.slice(0, 3);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(reducedItems));
-        console.log('History reduced to 3 items');
+        console.log("History reduced to 3 itemss");
         return;
       } catch (retryError2) {
-        console.warn('Still too large with 3 items, clearing history...');
+        console.warn("Still too large with 3 items, clearing history...");
       }
 
       // Попытка 3: очистить всю историю
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
-        console.log('History cleared completely');
+        console.log("History cleared completely");
       } catch (finalError) {
-        console.error('Failed to clear history, localStorage may be corrupted:', finalError);
+        console.error(
+          "Failed to clear history, localStorage may be corrupted:",
+          finalError
+        );
       }
     }
   }
@@ -89,7 +92,7 @@ const initialState: HistoryState = {
 };
 
 const historySlice = createSlice({
-  name: 'history',
+  name: "history",
   initialState,
   reducers: {
     addHistoryItem: (state, action: PayloadAction<HistoryItem>) => {
