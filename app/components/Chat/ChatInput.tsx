@@ -43,7 +43,8 @@ const ChatInput = ({ onSend, isGenerating }: ChatInputProps) => {
       if (
         msg.type === 'assistant' &&
         msg.content.status === 'succeeded' &&
-        msg.content.generatedImages?.length
+        msg.content.generatedImages?.length &&
+        !msg.content.isVideo  // Only attach images, not videos
       ) {
         return msg.content.generatedImages[0];
       }

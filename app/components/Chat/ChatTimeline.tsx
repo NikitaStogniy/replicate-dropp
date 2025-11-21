@@ -62,7 +62,7 @@ const ChatTimeline = ({ messages, height }: ChatTimelineProps) => {
       rowHeight={dynamicRowHeight}
       rowComponent={MessageRow}
       rowProps={{ messages, dynamicRowHeight }}
-      className="scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
+      className="scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent pb-[200px]"
     />
   );
 };

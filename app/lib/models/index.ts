@@ -2,7 +2,7 @@ import { ModelConfig } from './types';
 import { ideogramV3Turbo } from './ideogram-v3-turbo';
 import { seedream4 } from './seedream-4';
 import { nanoBanana } from './nano-banana';
-import { hailuo02 } from './hailuo-02';
+import { sora2 } from './sora-2';
 import { briaRemoveBg } from './bria-remove-bg';
 
 // Export types
@@ -14,7 +14,7 @@ export const MODELS: ModelConfig[] = [
   ideogramV3Turbo,
   seedream4,
   nanoBanana,
-  hailuo02,
+  sora2,
   briaRemoveBg,
   // Add other models here as you create them
 ];

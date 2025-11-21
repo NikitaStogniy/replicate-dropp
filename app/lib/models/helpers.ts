@@ -111,6 +111,10 @@ export const supportsLastFrame = (model: ModelConfig): boolean => {
   return !!model.schema.properties.last_frame_image;
 };
 
+export const supportsInputReference = (model: ModelConfig): boolean => {
+  return !!model.schema.properties.input_reference;
+};
+
 export const supportsDuration = (model: ModelConfig): boolean => {
   return !!model.schema.properties.duration;
 };

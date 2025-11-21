@@ -69,15 +69,51 @@ export default function DynamicGeneratorForm({
       }
     }
 
+    // Hide "Описание изображения" (prompt) field
+    if (paramName === 'prompt' || schema['x-component'] === 'textarea') {
+      return null;
+    }
+
     const uiField = schema['x-ui-field'] || paramName;
-    const value = parameters[uiField] as string | number | boolean | ImageValue | ImageValue[] | null | undefined;
+    let value = parameters[uiField] as string | number | boolean | ImageValue | ImageValue[] | null | undefined;
     const isRequired = currentModel.schema.required.includes(paramName);
+
+    // Handle aspect_ratio parameter with 'match_input_image' option
+    let modifiedSchema = schema;
+    if (paramName === 'aspect_ratio' && schema.enum && Array.isArray(schema.enum)) {
+      // Check if any image input exists in parameters
+      const hasImageInput = !!(
+        (parameters.imageInputs && Array.isArray(parameters.imageInputs) && parameters.imageInputs.length > 0) ||
+        parameters.characterImage ||
+        parameters.firstFrameImage ||
+        parameters.inputReference ||
+        parameters.image
+      );
+
+      // If no image input and enum contains 'match_input_image', filter it out
+      const enumValues = schema.enum as (string | number)[];
+      const hasMatchInputImage = enumValues.some((option) => option === 'match_input_image');
+
+      if (!hasImageInput && hasMatchInputImage) {
+        const filteredEnum = enumValues.filter((option) => option !== 'match_input_image');
+
+        // Create modified schema with filtered enum
+        modifiedSchema = { ...schema, enum: filteredEnum as typeof schema.enum };
+
+        // If current value is 'match_input_image', change to '1:1' (default)
+        if (value === 'match_input_image') {
+          value = '1:1';
+          // Update the parameter value in store
+          handleParameterChange(paramName, '1:1');
+        }
+      }
+    }
 
     return (
       <div key={paramName}>
         <DynamicFormField
           paramName={paramName}
-          schema={schema}
+          schema={modifiedSchema}
           value={value}
           onChange={(newValue) => handleParameterChange(paramName, newValue)}
           onSubmit={onSubmit}

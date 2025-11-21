@@ -54,7 +54,8 @@ export interface ChatMessage {
     autoAttachedImage?: ImageValue | null; // Auto-attached from previous generation (converted from URL)
 
     // Assistant message fields
-    generatedImages?: string[]; // Result URLs
+    generatedImages?: string[]; // Result URLs (images or videos as data URLs)
+    isVideo?: boolean; // True if content is video
     status?: 'processing' | 'succeeded' | 'failed';
     error?: string;
     seed?: number;

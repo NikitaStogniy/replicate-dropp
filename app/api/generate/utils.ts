@@ -117,7 +117,7 @@ export async function processReplicateOutput(
         }
 
         if (item && typeof item === 'object' && 'getReader' in item) {
-          return await streamToBase64(item as ReadableStream);
+          return await streamToDataUrl(item as ReadableStream, isVideoModel);
         }
 
         return item;
@@ -128,10 +128,7 @@ export async function processReplicateOutput(
 
   // ReadableStream
   if (output && typeof output === 'object' && 'getReader' in output) {
-    if (isVideoModel) {
-      return output as unknown as string; // Return as-is for video
-    }
-    return await streamToBase64(output as ReadableStream);
+    return await streamToDataUrl(output as ReadableStream, isVideoModel);
   }
 
   return output as string;
@@ -140,7 +137,7 @@ export async function processReplicateOutput(
 /**
  * Convert ReadableStream to base64 data URL
  */
-async function streamToBase64(stream: ReadableStream): Promise<string> {
+async function streamToDataUrl(stream: ReadableStream, isVideo: boolean = false): Promise<string> {
   const reader = stream.getReader();
   const chunks: Uint8Array[] = [];
 
@@ -161,7 +158,7 @@ async function streamToBase64(stream: ReadableStream): Promise<string> {
   const base64 = Buffer.from(buffer).toString('base64');
 
   // Определяем MIME тип по магическим байтам
-  const mimeType = detectImageMimeType(buffer);
+  const mimeType = isVideo ? detectVideoMimeType(buffer) : detectImageMimeType(buffer);
 
   return `data:${mimeType};base64,${base64}`;
 }
@@ -189,6 +186,33 @@ function detectImageMimeType(buffer: Uint8Array): string {
 
   // По умолчанию PNG (для обратной совместимости)
   return 'image/png';
+}
+
+/**
+ * Определяет MIME тип видео по магическим байтам
+ */
+function detectVideoMimeType(buffer: Uint8Array): string {
+  // MP4: starts with ftyp at offset 4
+  if (buffer.length >= 12 &&
+      buffer[4] === 0x66 && buffer[5] === 0x74 && buffer[6] === 0x79 && buffer[7] === 0x70) {
+    return 'video/mp4';
+  }
+
+  // WebM: 1A 45 DF A3
+  if (buffer.length >= 4 &&
+      buffer[0] === 0x1A && buffer[1] === 0x45 && buffer[2] === 0xDF && buffer[3] === 0xA3) {
+    return 'video/webm';
+  }
+
+  // AVI: 52 49 46 46 ... 41 56 49 20
+  if (buffer.length >= 12 &&
+      buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+      buffer[8] === 0x41 && buffer[9] === 0x56 && buffer[10] === 0x49 && buffer[11] === 0x20) {
+    return 'video/avi';
+  }
+
+  // По умолчанию MP4
+  return 'video/mp4';
 }
 
 /**

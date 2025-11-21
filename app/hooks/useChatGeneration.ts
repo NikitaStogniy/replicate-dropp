@@ -15,6 +15,7 @@ import {
   supportsImageInput,
   supportsCharacterImage,
   supportsFirstFrame,
+  supportsInputReference,
   supportsImageToImage,
 } from '../lib/models/helpers';
 
@@ -77,6 +78,13 @@ export const useChatGeneration = () => {
         if (currentInput.imageAttachments[1]) {
           finalParams.lastFrameImage = currentInput.imageAttachments[1];
         }
+      } else if (supportsInputReference(model)) {
+        // Video models like Sora 2
+        if (currentInput.autoAttachedImage) {
+          finalParams.inputReference = currentInput.autoAttachedImage;
+        } else if (currentInput.imageAttachments[0]) {
+          finalParams.inputReference = currentInput.imageAttachments[0];
+        }
       } else if (supportsImageToImage(model)) {
         // Models with image parameter
         if (currentInput.autoAttachedImage) {
@@ -125,6 +133,7 @@ export const useChatGeneration = () => {
       // Update message with result
       const outputArray = Array.isArray(data.output) ? data.output : [data.output];
       const filteredOutput = outputArray.filter((url): url is string => typeof url === 'string');
+      const isVideo = model.category === 'image-to-video';
 
       dispatch(
         updateAssistantMessage({
@@ -132,6 +141,7 @@ export const useChatGeneration = () => {
           updates: {
             status: 'succeeded',
             generatedImages: filteredOutput,
+            isVideo,
             seed: data.seed,
           },
         })
