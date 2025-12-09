@@ -84,12 +84,79 @@ export async function buildApiInput(
 }
 
 /**
+ * Extract URL from FileOutput or similar object
+ */
+function tryGetUrl(obj: unknown): string | null {
+  if (!obj || typeof obj !== 'object') return null;
+
+  // Try calling .url() method (FileOutput from Replicate SDK)
+  try {
+    const urlMethod = (obj as Record<string, unknown>).url;
+    if (typeof urlMethod === 'function') {
+      const result = urlMethod.call(obj);
+      if (typeof result === 'string' && result.startsWith('http')) {
+        return result;
+      }
+    }
+  } catch {
+    // Method call failed
+  }
+
+  // Try toString() method (FileOutput also supports this)
+  try {
+    const toStringMethod = (obj as Record<string, unknown>).toString;
+    if (typeof toStringMethod === 'function') {
+      const result = toStringMethod.call(obj);
+      if (typeof result === 'string' && result.startsWith('http')) {
+        return result;
+      }
+    }
+  } catch {
+    // Method call failed
+  }
+
+  // Try accessing .url property
+  try {
+    const urlProp = (obj as Record<string, unknown>).url;
+    if (typeof urlProp === 'string' && urlProp.startsWith('http')) {
+      return urlProp;
+    }
+  } catch {
+    // Property access failed
+  }
+
+  // Try .href property (URL object)
+  try {
+    const hrefProp = (obj as Record<string, unknown>).href;
+    if (typeof hrefProp === 'string' && hrefProp.startsWith('http')) {
+      return hrefProp;
+    }
+  } catch {
+    // Property access failed
+  }
+
+  return null;
+}
+
+/**
  * Process Replicate output to ensure consistent format
  */
 export async function processReplicateOutput(
   output: unknown,
-  isVideoModel: boolean
+  _isVideoModel?: boolean
 ): Promise<string | string[]> {
+  console.log('=== processReplicateOutput ===');
+  console.log('Output type:', typeof output);
+  console.log('Output constructor:', output?.constructor?.name);
+  console.log('Output keys:', output && typeof output === 'object' ? Object.keys(output) : 'N/A');
+
+  // Try to extract URL from FileOutput or similar object
+  const extractedUrl = tryGetUrl(output);
+  if (extractedUrl) {
+    console.log('Extracted URL:', extractedUrl);
+    return extractedUrl;
+  }
+
   // URL object (common for video models)
   if (output instanceof URL) {
     return output.href;
@@ -108,10 +175,14 @@ export async function processReplicateOutput(
     }
   }
 
-  // Array of outputs
+  // Array of outputs (may contain FileOutput objects)
   if (Array.isArray(output)) {
     const processed = await Promise.all(
       output.map(async (item) => {
+        // Try to extract URL from item
+        const itemUrl = tryGetUrl(item);
+        if (itemUrl) return itemUrl;
+
         if (typeof item === 'string' && (item.startsWith('http') || item.startsWith('data:'))) {
           return item;
         }
@@ -126,11 +197,25 @@ export async function processReplicateOutput(
     return processed.length === 1 ? processed[0] : processed;
   }
 
-  // ReadableStream
+  // ReadableStream - check if it's a FileOutput first
   if (output && typeof output === 'object' && 'getReader' in output) {
-    if (isVideoModel) {
-      return output as unknown as string; // Return as-is for video
+    console.log('Got ReadableStream, checking for FileOutput methods...');
+    // Last attempt: maybe url is in prototype chain
+    try {
+      // @ts-expect-error - trying to access url method from FileOutput
+      if (typeof output.url === 'function') {
+        // @ts-expect-error - calling url method
+        const url = output.url();
+        if (typeof url === 'string' && url.startsWith('http')) {
+          console.log('Found URL via prototype:', url);
+          return url;
+        }
+      }
+    } catch (e) {
+      console.log('FileOutput url() failed:', e);
     }
+
+    // If no URL found, convert to base64
     return await streamToBase64(output as ReadableStream);
   }
 

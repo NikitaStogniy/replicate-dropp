@@ -4,6 +4,8 @@ import { seedream4 } from './seedream-4';
 import { nanoBanana } from './nano-banana';
 import { hailuo02 } from './hailuo-02';
 import { briaRemoveBg } from './bria-remove-bg';
+import { recraftVectorize } from './recraft-vectorize';
+import { sora2 } from './sora-2';
 
 // Export types
 export * from './types';
@@ -16,6 +18,8 @@ export const MODELS: ModelConfig[] = [
   nanoBanana,
   hailuo02,
   briaRemoveBg,
+  recraftVectorize,
+  sora2,
   // Add other models here as you create them
 ];
 

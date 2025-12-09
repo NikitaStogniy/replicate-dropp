@@ -17,19 +17,57 @@ export default function ImageResult({
   onDownload,
   filename = "generated-image.png",
 }: ImageResultProps) {
+  // Check if it's an SVG file and fix the URL if needed
+  const { isSvg, fixedImageUrl } = (() => {
+    if (imageUrl.toLowerCase().includes('.svg') || filename.endsWith('.svg')) {
+      return { isSvg: true, fixedImageUrl: imageUrl };
+    }
+    // Check if it's a base64 SVG (Replicate may return SVG with wrong MIME type)
+    if (imageUrl.startsWith('data:')) {
+      try {
+        const base64Data = imageUrl.split(',')[1];
+        if (base64Data) {
+          const decoded = atob(base64Data.slice(0, 100)); // Check first 100 chars
+          if (decoded.includes('<svg') || decoded.includes('<?xml')) {
+            // Fix the MIME type to image/svg+xml
+            const correctedUrl = `data:image/svg+xml;base64,${base64Data}`;
+            return { isSvg: true, fixedImageUrl: correctedUrl };
+          }
+        }
+      } catch {
+        // Ignore decoding errors
+      }
+    }
+    return { isSvg: false, fixedImageUrl: imageUrl };
+  })();
+
   return (
     <div className="group relative bg-white rounded-2xl p-2 shadow-lg hover:shadow-xl transition-shadow duration-100">
-      <Image
-        src={imageUrl}
-        alt={alt}
-        className="w-full rounded-xl"
-        width={800}
-        height={800}
-        onError={(e) => {
-          console.error("Ошибка загрузки изображения:", imageUrl);
-          e.currentTarget.style.display = "none";
-        }}
-      />
+      {isSvg ? (
+        // Use regular img tag for SVG (Next.js Image doesn't handle SVG well)
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={fixedImageUrl}
+          alt={alt}
+          className="w-full rounded-xl"
+          onError={(e) => {
+            console.error("Ошибка загрузки SVG:", fixedImageUrl);
+            e.currentTarget.style.display = "none";
+          }}
+        />
+      ) : (
+        <Image
+          src={imageUrl}
+          alt={alt}
+          className="w-full rounded-xl"
+          width={800}
+          height={800}
+          onError={(e) => {
+            console.error("Ошибка загрузки изображения:", imageUrl);
+            e.currentTarget.style.display = "none";
+          }}
+        />
+      )}
       <div className="absolute inset-0 backdrop-blur-lg bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100">
         <div className="flex space-x-2 flex-wrap justify-center">
           {onEdit && (

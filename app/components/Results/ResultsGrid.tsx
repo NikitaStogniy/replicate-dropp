@@ -25,7 +25,20 @@ export default function ResultsGrid({ output, onEdit, onDownload, parameters }: 
     // Если формата нет в параметрах, определяем из URL изображения
     if (imageUrl) {
       // Проверяем data URL (base64)
-      if (imageUrl.startsWith('data:image/')) {
+      if (imageUrl.startsWith('data:')) {
+        // Проверяем содержимое base64 на SVG (Replicate может вернуть SVG с неправильным MIME)
+        try {
+          const base64Data = imageUrl.split(',')[1];
+          if (base64Data) {
+            const decoded = atob(base64Data.slice(0, 100));
+            if (decoded.includes('<svg') || decoded.includes('<?xml')) {
+              return 'svg';
+            }
+          }
+        } catch {
+          // Ignore decoding errors
+        }
+
         const mimeType = imageUrl.split(';')[0].split(':')[1];
         if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
           return 'jpg';
@@ -36,6 +49,9 @@ export default function ResultsGrid({ output, onEdit, onDownload, parameters }: 
         if (mimeType === 'image/webp') {
           return 'webp';
         }
+        if (mimeType === 'image/svg+xml') {
+          return 'svg';
+        }
       }
 
       // Проверяем обычный URL с расширением файла
@@ -43,7 +59,7 @@ export default function ResultsGrid({ output, onEdit, onDownload, parameters }: 
       if (urlExtension === 'jpg' || urlExtension === 'jpeg') {
         return 'jpg';
       }
-      if (urlExtension === 'png' || urlExtension === 'webp') {
+      if (urlExtension === 'png' || urlExtension === 'webp' || urlExtension === 'svg') {
         return urlExtension;
       }
     }

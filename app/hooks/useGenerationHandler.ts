@@ -5,7 +5,7 @@ import { setResult } from '../store/slices/generatorSlice';
 import { addHistoryItem } from '../store/slices/historySlice';
 import { showError, showSuccess } from '../utils/toast';
 import { imageUrlToBase64 } from '../utils/imageStorage';
-import { getModelById } from '../lib/models';
+import { getModelById, isVideoModel } from '../lib/models';
 
 interface GenerationParams {
   parameters: Record<string, unknown>;
@@ -67,7 +67,7 @@ export const useGenerationHandler = () => {
         if (data.status === 'succeeded' && data.output) {
           try {
             const model = getModelById(selectedModelId);
-            const isVideo = model?.category === 'image-to-video';
+            const isVideo = model ? isVideoModel(model) : false;
 
             // Get first image URL for conversion
             const imageUrl = Array.isArray(data.output) ? data.output[0] : data.output;

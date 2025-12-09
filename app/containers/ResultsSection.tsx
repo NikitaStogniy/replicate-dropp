@@ -29,7 +29,7 @@ export default function ResultsSection({
     >
       <ResultHeader
         title={
-          currentModel?.category === "image-to-video"
+          currentModel?.category === "image-to-video" || currentModel?.category === "text-to-video"
             ? "Результат генерации видео"
             : "Результат генерации"
         }
@@ -38,7 +38,7 @@ export default function ResultsSection({
 
       {result.status === "succeeded" && result.output && (
         <div className="max-w-4xl mx-auto">
-          {currentModel?.category === "image-to-video" ? (
+          {currentModel?.category === "image-to-video" || currentModel?.category === "text-to-video" ? (
             <VideoResult
               videoUrl={
                 Array.isArray(result.output) ? result.output[0] : result.output

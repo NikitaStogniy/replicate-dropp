@@ -39,9 +39,12 @@ export async function POST(request: NextRequest) {
     // Form model name for Replicate
     const modelName = `${selectedModel.owner}/${selectedModel.model}`;
 
+    const isVideo = isVideoModel(selectedModel);
+
     console.log("Sending to Replicate:", {
       modelName,
       modelCategory: selectedModel.category,
+      isVideo,
       input: Object.keys(input).reduce((acc, key) => {
         const value = input[key];
         acc[key] = key.includes("image")
@@ -53,27 +56,57 @@ export async function POST(request: NextRequest) {
       }, {} as Record<string, string | number>),
     });
 
-    // Run generation through SDK
-    const output = await replicate.run(modelName as `${string}/${string}`, {
-      input,
-    });
+    let finalOutput: string | string[];
 
-    const isVideo = isVideoModel(selectedModel);
+    if (isVideo) {
+      // For video models, use predictions API to get proper JSON response with URL
+      console.log("Using predictions API for video model...");
 
-    console.log("=== REPLICATE OUTPUT ===");
-    console.log("Model:", selectedModel.name);
-    console.log("Category:", selectedModel.category);
-    console.log("Output type:", typeof output);
-    console.log("Output:", output);
-    console.log("=== END ===");
+      const prediction = await replicate.predictions.create({
+        model: modelName as `${string}/${string}`,
+        input,
+      });
 
-    // Process output to consistent format
-    const finalOutput = await processReplicateOutput(output, isVideo);
+      console.log("Prediction created:", prediction.id);
 
-    console.log("=== FINAL OUTPUT ===");
-    console.log("Final output type:", typeof finalOutput);
-    console.log("Final output:", finalOutput);
-    console.log("=== END ===");
+      // Wait for completion
+      const completedPrediction = await replicate.wait(prediction);
+
+      console.log("=== VIDEO PREDICTION RESULT ===");
+      console.log("Status:", completedPrediction.status);
+      console.log("Output:", completedPrediction.output);
+      console.log("=== END ===");
+
+      if (completedPrediction.status === "failed") {
+        const errorMsg = typeof completedPrediction.error === 'string'
+          ? completedPrediction.error
+          : JSON.stringify(completedPrediction.error) || "Video generation failed";
+        throw new Error(errorMsg);
+      }
+
+      // Output should be a URL string for video models
+      finalOutput = completedPrediction.output as string;
+    } else {
+      // For image models, use run() which handles streaming better
+      const output = await replicate.run(modelName as `${string}/${string}`, {
+        input,
+      });
+
+      console.log("=== REPLICATE OUTPUT ===");
+      console.log("Model:", selectedModel.name);
+      console.log("Category:", selectedModel.category);
+      console.log("Output type:", typeof output);
+      console.log("Output:", output);
+      console.log("=== END ===");
+
+      // Process output to consistent format
+      finalOutput = await processReplicateOutput(output);
+
+      console.log("=== FINAL OUTPUT ===");
+      console.log("Final output type:", typeof finalOutput);
+      console.log("Final output:", finalOutput);
+      console.log("=== END ===");
+    }
 
     // Handle seed
     const seedParam = formData.get("seed") as string;
